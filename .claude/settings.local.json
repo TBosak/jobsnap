@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//mnt/c/Users/timb6/AppData/Local/Microsoft/Edge/User Data/Default/Extensions/caobgmmcpklomkcckaenhjlokpmfbdec/3.2.3_0/**)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Read(//mnt/c/Users/timb6/AppData/Local/Microsoft/Edge/**)",
+      "Bash(curl:*)",
+      "mcp__serena__read_file",
+      "mcp__serena__activate_project",
+      "Bash(bun run:*)",
+      "Bash(killall:*)",
+      "Bash(awk:*)",
+      "WebFetch(domain:www.ycombinator.com)",
+      "WebFetch(domain:www.workatastartup.com)",
+      "WebFetch(domain:nelnet.wd1.myworkdayjobs.com)",
+      "WebFetch(domain:www.adzuna.com)",
+      "mcp__browser__browser_navigate",
+      "WebFetch(domain:job-boards.greenhouse.io)",
+      "WebFetch(domain:hdjm.fa.ca2.oraclecloud.com)",
+      "mcp__serena__search_for_pattern",
+      "Bash(cat:*)",
+      "Bash(tr '>' '\\n')",
+      "Bash(bunx vite build:*)",
+      "WebFetch(domain:lucide.dev)",
+      "WebFetch(domain:magnit-airbnb.talentnet.community)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

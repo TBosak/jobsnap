@@ -1,0 +1,62 @@
+{
+  "manifest_version": 3,
+  "name": "JobSnap",
+  "description": "Job application helper with resume parsing and autofill.",
+  "version": "0.1.0",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "JobSnap"
+  },
+  "options_page": "options.html",
+  "background": {
+    "service_worker": "background/background.js",
+    "type": "module"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "https://*.linkedin.com/*",
+    "https://*.greenhouse.io/*",
+    "https://*.lever.co/*",
+    "https://*.workday.com/*",
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "tesseract/worker.min.js",
+        "tesseract/tesseract-core.wasm.js",
+        "tesseract/tesseract-core.wasm",
+        "tesseract/eng.traineddata.gz",
+        "16.png",
+        "32.png",
+        "128.png",
+        "fullsize.png",
+        "transformers/ort-wasm-simd-threaded.jsep.wasm",
+        "transformers/ort-wasm-simd-threaded.jsep.mjs",
+        "transformers/ort-wasm-simd-threaded.wasm",
+        "transformers/ort-wasm-simd-threaded.mjs"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "icons": {
+    "16": "16.png",
+    "32": "32.png",
+    "128": "128.png"
+  }
+}
