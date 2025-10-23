@@ -9,6 +9,10 @@ import { workAtAStartupJobAdapter } from "./workatastartup";
 import { adzunaJobAdapter } from "./adzuna";
 import { oracleJobAdapter } from "./oracle";
 import { magnitJobAdapter } from "./magnit";
+import { taleoJobAdapter } from "./taleo";
+import { adpJobAdapter } from "./adp";
+import { ultiproJobAdapter } from "./ultipro";
+import { breezyJobAdapter } from "./breezy";
 import { genericJobAdapter } from "./generic";
 
 const ADAPTERS: JobAdapter[] = [
@@ -21,14 +25,18 @@ const ADAPTERS: JobAdapter[] = [
   workAtAStartupJobAdapter,
   adzunaJobAdapter,
   magnitJobAdapter,
+  taleoJobAdapter,
+  adpJobAdapter,
+  ultiproJobAdapter,
+  breezyJobAdapter,
   genericJobAdapter
 ];
 
-export function extractJobPosting(doc: Document, url: URL): JobPageExtract | null {
+export async function extractJobPosting(doc: Document, url: URL): Promise<JobPageExtract | null> {
   for (const adapter of ADAPTERS) {
     try {
       if (adapter.canHandle(doc, url)) {
-        const extract = adapter.extract(doc, url);
+        const extract = await adapter.extract(doc, url);
         if (extract && extract.text && extract.text.trim().length > 200) {
           return extract;
         }

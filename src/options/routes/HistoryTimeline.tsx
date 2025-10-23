@@ -5,7 +5,7 @@ import "vis-timeline/dist/vis-timeline-graph2d.css";
 import type { JobFillEvent, JobFillStatus } from "../../ui-shared/types.history";
 import { statusLabel, STATUS_COLORS } from "./History";
 
-export type TimelineGranularity = "week" | "month";
+export type TimelineGranularity = "day" | "week" | "month";
 
 interface HistoryTimelineProps {
   events: JobFillEvent[];
@@ -24,6 +24,7 @@ interface TimelineBucket {
 }
 
 const GRANULARITY_OPTIONS: { value: TimelineGranularity; label: string }[] = [
+  { value: "day", label: "Daily" },
   { value: "week", label: "Weekly" },
   { value: "month", label: "Monthly" }
 ];
@@ -52,27 +53,43 @@ export function HistoryTimeline({
       timelineRef.current = null;
     }
 
+    const zoomMin = granularity === "day" ? MILLIS_IN_DAY * 7 : granularity === "week" ? MILLIS_IN_DAY * 30 : MILLIS_IN_DAY * 90;
+    const zoomMax = granularity === "day" ? MILLIS_IN_DAY * 90 : granularity === "week" ? MILLIS_IN_DAY * 365 : MILLIS_IN_DAY * 730;
+    const padding = granularity === "day" ? MILLIS_IN_DAY * 2 : granularity === "week" ? MILLIS_IN_DAY * 7 : MILLIS_IN_DAY * 30;
+
     const timeline = new Timeline(
       containerRef.current,
       new DataSet(items),
       new DataSet(groups),
       {
         stack: false,
-        zoomMin: granularity === "week" ? MILLIS_IN_DAY : MILLIS_IN_DAY * 7,
-        zoomMax: MILLIS_IN_DAY * 365,
+        zoomMin,
+        zoomMax,
         orientation: "top",
         selectable: true,
         multiselect: false,
-        margin: { item: 20, axis: 10 },
+        margin: { item: { horizontal: 2 }, axis: 10 },
         maxHeight: 420,
         zoomKey: "ctrlKey",
-        tooltip: { followMouse: true }
+        tooltip: { followMouse: true },
+        snap: null,
+        format: {
+          minorLabels: {
+            day: granularity === "day" ? "D" : "DD",
+            week: "w",
+            month: "MMM"
+          },
+          majorLabels: {
+            day: "MMM YYYY",
+            week: "MMM YYYY",
+            month: "YYYY"
+          }
+        }
       }
     );
 
     if (window) {
       timeline.fit();
-      const padding = granularity === "week" ? MILLIS_IN_DAY * 2 : MILLIS_IN_DAY * 10;
       timeline.setWindow(window.start - padding, window.end + padding, { animation: false });
     }
 
@@ -204,14 +221,27 @@ function buildTimelineData(events: JobFillEvent[], granularity: TimelineGranular
 
 function bucketBounds(timestamp: number, granularity: TimelineGranularity) {
   const date = new Date(timestamp);
+
+  if (granularity === "day") {
+    const start = startOfDay(date);
+    return { start, end: start + MILLIS_IN_DAY };
+  }
+
   if (granularity === "week") {
     const start = startOfWeek(date);
     return { start, end: start + MILLIS_IN_DAY * 7 };
   }
+
   const start = startOfMonth(date);
   const endMonth = new Date(start);
   endMonth.setMonth(endMonth.getMonth() + 1);
   return { start, end: endMonth.getTime() };
+}
+
+function startOfDay(date: Date): number {
+  const result = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  result.setHours(0, 0, 0, 0);
+  return result.getTime();
 }
 
 function startOfWeek(date: Date): number {

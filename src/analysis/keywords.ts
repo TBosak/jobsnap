@@ -149,8 +149,17 @@ function deduplicateByContainment(candidates: CandidateScore[]): CandidateScore[
     return candidate;
   });
 
+  // After normalization, deduplicate exact matches (keep highest score)
+  const exactMatchMap = new Map<string, CandidateScore>();
+  normalized.forEach(candidate => {
+    const existing = exactMatchMap.get(candidate.term);
+    if (!existing || candidate.score > existing.score) {
+      exactMatchMap.set(candidate.term, candidate);
+    }
+  });
+
   // Sort by length (shortest first) and then by score (highest first)
-  const sorted = [...normalized].sort((a, b) => {
+  const sorted = Array.from(exactMatchMap.values()).sort((a, b) => {
     const lenDiff = a.term.length - b.term.length;
     if (lenDiff !== 0) return lenDiff;
     return b.score - a.score;

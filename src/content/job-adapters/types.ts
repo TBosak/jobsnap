@@ -6,5 +6,5 @@ export interface JobPageExtract {
 
 export interface JobAdapter {
   canHandle(doc: Document, url: URL): boolean;
-  extract(doc: Document, url: URL): JobPageExtract | null;
+  extract(doc: Document, url: URL): JobPageExtract | null | Promise<JobPageExtract | null>;
 }

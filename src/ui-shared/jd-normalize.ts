@@ -15,6 +15,12 @@ export function canonicalizeJobUrl(raw: string): string {
     if (url.protocol === "http:") {
       url.protocol = "https:";
     }
+
+    // Normalize Lever URLs: remove /apply suffix
+    if (url.hostname.includes("lever.co") && url.pathname.endsWith("/apply")) {
+      url.pathname = url.pathname.slice(0, -6); // Remove "/apply"
+    }
+
     const params = new URLSearchParams(url.search);
     for (const key of Array.from(params.keys())) {
       if (shouldDropParam(key)) {

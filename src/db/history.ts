@@ -31,6 +31,84 @@ interface AddHistoryPayload {
 }
 
 export async function addHistory(payload: AddHistoryPayload): Promise<string> {
+  // Check for duplicates within the same minute to avoid autofill+save creating two entries
+  const oneMinuteAgo = Date.now() - 60 * 1000;
+
+  const recentDuplicate = await db.job_history
+    .where("host")
+    .equals(payload.host)
+    .filter(event => {
+      // Only check entries from the last minute
+      if (event.createdAt < oneMinuteAgo) return false;
+
+      // Match by canonicalUrl if available (highest priority)
+      if (payload.canonicalUrl && event.canonicalUrl === payload.canonicalUrl) {
+        return true;
+      }
+
+      // Match by descHash if available (content-based match)
+      if (payload.descHash && event.descHash === payload.descHash) {
+        return true;
+      }
+
+      // Match by signature (title + company) - exact match
+      if (payload.signature && event.signature === payload.signature) {
+        return true;
+      }
+
+      // Fuzzy signature match: check if signatures contain the same words
+      // This handles cases where title/company order differs
+      if (payload.signature && event.signature) {
+        const payloadWords = new Set(payload.signature.split(/[@\s]+/).filter(w => w.length > 2));
+        const eventWords = new Set(event.signature.split(/[@\s]+/).filter(w => w.length > 2));
+
+        // Check if there's significant overlap (at least 80% of words match)
+        const intersection = new Set([...payloadWords].filter(w => eventWords.has(w)));
+        const union = new Set([...payloadWords, ...eventWords]);
+        const similarity = intersection.size / union.size;
+
+        if (similarity >= 0.8) {
+          return true;
+        }
+      }
+
+      return false;
+    })
+    .first();
+
+  if (recentDuplicate) {
+    // Update the existing entry with any new information
+    const updates: Partial<JobFillEvent> = {};
+
+    if (payload.jdItemId && payload.jdItemId !== recentDuplicate.jdItemId) {
+      updates.jdItemId = payload.jdItemId;
+    }
+    if (payload.collectionId && payload.collectionId !== recentDuplicate.collectionId) {
+      updates.collectionId = payload.collectionId;
+    }
+    if (payload.matchTier && payload.matchTier !== recentDuplicate.matchTier) {
+      updates.matchTier = payload.matchTier;
+    }
+    if (payload.matchScore != null && payload.matchScore !== recentDuplicate.matchScore) {
+      updates.matchScore = payload.matchScore;
+    }
+
+    // Update title if the new one is better (has a company field separately)
+    // This happens when autofill creates entry with "Company - Title" and then
+    // save updates it with properly parsed title and company
+    if (payload.title && payload.company && !recentDuplicate.company) {
+      updates.title = payload.title;
+      updates.company = payload.company;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      await db.job_history.update(recentDuplicate.id, updates);
+    }
+
+    return recentDuplicate.id;
+  }
+
+  // No duplicate found, create a new entry
   const id = makeId();
   const now = Date.now();
   const status = payload.status ?? "saved";

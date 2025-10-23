@@ -5,6 +5,7 @@ import type { JobFillEvent, JobFillStatus } from "../../ui-shared/types.history"
 import type { HistoryListParams } from "../../ui-shared/messaging";
 import { listProfiles } from "../utils/profiles";
 import { HistoryTimeline, type TimelineGranularity } from "./HistoryTimeline";
+import { sanitizeHTML } from "../../ui-shared/sanitize";
 
 export const STATUS_ORDER: JobFillStatus[] = ["saved", "applied", "interview", "rejected", "offer"];
 
@@ -211,7 +212,7 @@ export function HistoryPanel() {
     <div className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Autofill History</h2>
+          <h2 className="text-lg font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">History</h2>
           {hasDateRange && <p className="text-xs text-slate-500">Range: {formatDateRange(dateRange)}</p>}
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -383,7 +384,10 @@ export function HistoryPanel() {
                       <td colSpan={8} className="bg-slate-50 px-3 py-4">
                         <div className="max-h-60 overflow-y-auto rounded border border-slate-200 bg-white p-3 text-sm text-slate-700">
                           <div className="mb-2 font-semibold text-slate-900">Job Description</div>
-                          <div className="whitespace-pre-wrap">{jobDescText}</div>
+                          <div
+                            className="prose prose-sm max-w-none prose-headings:mt-4 prose-headings:mb-2 prose-p:my-2 prose-ul:my-2 prose-li:my-1"
+                            dangerouslySetInnerHTML={{ __html: sanitizeHTML(jobDescText) }}
+                          />
                         </div>
                       </td>
                     </tr>

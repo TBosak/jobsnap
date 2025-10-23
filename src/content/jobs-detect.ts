@@ -47,23 +47,27 @@ export function getJobContext(): JobContext | null {
 }
 
 function tryInit() {
-  const extract = getCurrentExtraction();
-  if (!extract) {
+  getCurrentExtraction().then((extract) => {
+    if (!extract) {
+      setJobContext(null);
+      return;
+    }
+    setJobContext({
+      title: extract.title,
+      company: extract.company,
+      text: extract.text,
+      url: location.href,
+      host: location.host
+    });
+  }).catch((error) => {
+    console.warn("JobSnap extraction error", error);
     setJobContext(null);
-    return;
-  }
-  setJobContext({
-    title: extract.title,
-    company: extract.company,
-    text: extract.text,
-    url: location.href,
-    host: location.host
   });
 }
 
-function getCurrentExtraction() {
+async function getCurrentExtraction() {
   const url = new URL(location.href);
-  const baseExtract = extractJobPosting(document, url) ?? getFallbackExtraction(url);
+  const baseExtract = await extractJobPosting(document, url) ?? getFallbackExtraction(url);
   if (!baseExtract) return null;
   const text = cleanText(baseExtract.text);
   if (!text || text.length < 150) return null;
@@ -121,6 +125,20 @@ function getFallbackExtraction(url: URL) {
 }
 
 function cleanText(htmlText: string): string {
+  // If the text contains HTML tags, preserve them (it's from JSON-LD or clean source)
+  // Just do basic cleanup of the HTML
+  if (/<[a-z][\s\S]*>/i.test(htmlText)) {
+    const container = document.createElement("div");
+    container.innerHTML = htmlText;
+
+    // Remove script and style tags but keep the HTML structure
+    container.querySelectorAll("script, style, noscript").forEach(el => el.remove());
+
+    // Return the cleaned HTML
+    return container.innerHTML.trim();
+  }
+
+  // Otherwise, treat it as plain text extraction that needs full cleaning
   const container = document.createElement("div");
   container.innerHTML = htmlText;
   return cleanHTMLElement(container);
@@ -216,8 +234,21 @@ async function saveJobWithContext(context: JobContext): Promise<string | null> {
 
   const id = await sendMessage({ type: "JD_ADD_ITEM", payload });
   if (typeof id === "string") {
-    // Also create a history entry with "saved" status
+    // Create a history entry with "saved" status for this job
+    // This is important for when users save jobs directly (not via autofill)
     try {
+      // Get the active profile to include in history
+      let activeProfileId: string | undefined;
+      try {
+        const activeProfile = await sendMessage({ type: "GET_ACTIVE_PROFILE" });
+        if (activeProfile && typeof activeProfile === "object" && "id" in activeProfile) {
+          activeProfileId = (activeProfile as { id: string }).id;
+        }
+      } catch (error) {
+        // No active profile, that's okay
+        console.debug("No active profile for history entry:", error);
+      }
+
       await sendMessage({
         type: "HISTORY_LOG_AUTOFILL",
         payload: {
@@ -227,6 +258,7 @@ async function saveJobWithContext(context: JobContext): Promise<string | null> {
           company: context.company,
           collectionId,
           jdItemId: id,
+          profileId: activeProfileId,
           status: "saved"
         }
       });
