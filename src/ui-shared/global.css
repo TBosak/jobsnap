@@ -1,7 +1,10 @@
+@import './gradients.css';
+@import './animations.css';
+
 :root {
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #0f172a;
-  background-color: #f8fafc;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-light);
 }
 
 body {

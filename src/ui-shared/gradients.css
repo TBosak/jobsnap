@@ -1,0 +1,28 @@
+/* Pastel Gradient Design System */
+:root {
+  /* Primary Gradients */
+  --gradient-primary: linear-gradient(135deg, #FFB5B5 0%, #B5E7DD 100%);
+  --gradient-secondary: linear-gradient(135deg, #D4C5F9 0%, #FFB5B5 100%);
+  --gradient-tertiary: linear-gradient(135deg, #B5E7DD 0%, #B5D4F9 100%);
+
+  /* Accent Colors */
+  --color-peach: #FFB5B5;
+  --color-mint: #B5E7DD;
+  --color-lavender: #D4C5F9;
+  --color-sky: #B5D4F9;
+  --color-butter: #FFF4B5;
+
+  /* Active State */
+  --color-active: #FFD4D4;
+  --glow-active: 0 0 24px rgba(255, 180, 180, 0.5);
+  --glow-hover: 0 0 15px rgba(181, 231, 221, 0.4);
+
+  /* Backgrounds */
+  --color-bg-light: #FAFAF9;
+  --color-surface: #FFFFFF;
+
+  /* Text - Dark for contrast on pastels */
+  --color-text-primary: #2D3748;
+  --color-text-secondary: #718096;
+  --color-text-muted: #A0AEC0;
+}
