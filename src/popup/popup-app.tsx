@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import { Settings } from "lucide-react";
 import type { ProfileIndexItem } from "../ui-shared/messaging";
 import { sendMessage } from "../ui-shared/runtime";
-import { GradientHeader } from "./components/GradientHeader";
 import { ProfileCard } from "./components/ProfileCard";
-import { FloatingActionButton } from "./components/FloatingActionButton";
 import type { ProfileRecord } from "../ui-shared/schema";
 
 export function PopupApp() {
@@ -42,27 +40,27 @@ export function PopupApp() {
   }
 
   return (
-    <div className="min-w-80 max-w-96 bg-white rounded-xl shadow-xl overflow-hidden">
-      <GradientHeader
-        title="JobSnap"
-        subtitle="Your profile, autofilled"
-        action={
-          <button
-            onClick={() => chrome.runtime.openOptionsPage()}
-            className="
-              p-2 rounded-full
-              bg-white/20 hover:bg-white/30
-              transition-all duration-base
-              backdrop-blur-sm
-            "
-            aria-label="Open settings"
-          >
-            <Settings className="h-5 w-5 text-slate-700" />
-          </button>
-        }
-      />
+    <div className="min-w-80 max-w-96 bg-gradient-to-b from-peach/10 to-mint/10 rounded-xl shadow-xl overflow-hidden relative">
+      {/* Floating Settings Button */}
+      <button
+        onClick={() => chrome.runtime.openOptionsPage()}
+        className="
+          absolute top-3 right-3 z-10
+          p-2.5 rounded-full
+          bg-white border-2 border-peach/30
+          shadow-md
+          transition-all duration-base
+          hover:scale-110 hover:shadow-lg hover:border-peach/50 hover:shadow-peach/20
+          active:scale-95
+          focus:outline-none focus:ring-2 focus:ring-peach/50 focus:ring-offset-2
+          group
+        "
+        aria-label="Open settings"
+      >
+        <Settings className="h-5 w-5 text-slate-700 transition-transform duration-500 group-hover:rotate-90" />
+      </button>
 
-      <div className="p-4">
+      <div className="p-4 pt-14">
         {error && (
           <div className="mb-3 p-3 rounded-lg bg-red-50 border border-red-200">
             <p className="text-sm text-red-700">{error}</p>
