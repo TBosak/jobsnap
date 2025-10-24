@@ -47,7 +47,7 @@ export function OptionsApp() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-indigo-50 py-10 text-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-peach/10 via-white to-mint/10 py-10 text-slate-900">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6">
         <header className="rounded-xl border border-slate-100 bg-white/90 p-6 shadow-sm backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -68,7 +68,7 @@ export function OptionsApp() {
           <NavButton icon={Folder} label="Collections" active={view === "collections"} onClick={() => setView("collections")} />
           <NavButton icon={Clock} label="History" active={view === "history"} onClick={() => setView("history")} />
         </nav>
-        <main className="rounded-2xl border border-slate-100 bg-white/90 p-5 shadow-sm backdrop-blur">
+        <main className="rounded-2xl border border-peach/20 bg-white/95 p-5 shadow-sm backdrop-blur">
           {view === "profiles" && (
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <section>
@@ -107,10 +107,10 @@ function NavButton({ icon: Icon, label, active, onClick }: NavButtonProps) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:ring-offset-1 ${
+      className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-base focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:ring-offset-1 ${
         active
-          ? "border-indigo-400 bg-indigo-50 text-indigo-700"
-          : "border-slate-200 bg-white text-slate-500 hover:border-indigo-200 hover:text-indigo-600"
+          ? "border-peach bg-peach/10 text-peach shadow-glow-active"
+          : "border-slate-200 bg-white text-slate-500 hover:border-mint hover:text-slate-700"
       }`}
     >
       <Icon size={18} />
