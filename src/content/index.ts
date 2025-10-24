@@ -340,7 +340,7 @@ function ensureFabElements() {
   handleWrapper.style.display = "flex";
   handleWrapper.style.alignItems = "center";
   handleWrapper.style.backgroundColor = "#ffffff";
-  handleWrapper.style.boxShadow = "0 0 40px 0 rgba(32, 38, 44, 0.25)";
+  handleWrapper.style.boxShadow = "0 0 40px 0 rgba(255, 180, 180, 0.25)";
   handleWrapper.style.borderRadius = "8px 0 0 8px";
   handleWrapper.style.position = "relative";
   handleWrapper.style.overflow = "visible"; // Allow close button to extend beyond bounds
@@ -429,7 +429,7 @@ function ensureFabElements() {
   dragHandle.style.alignItems = "center";
   dragHandle.style.justifyContent = "center";
   dragHandle.style.flexDirection = "column";
-  dragHandle.style.background = "linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)";
+  dragHandle.style.background = "linear-gradient(135deg, #FFB5B5 0%, #B5E7DD 100%)";
   dragHandle.style.height = "64px";
   dragHandle.style.width = "0px";
   dragHandle.style.paddingInline = "0px";
@@ -509,10 +509,10 @@ function ensureFabElements() {
   actionsList.style.paddingTop = "12px";
   actionsList.style.background = "linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%)";
   actionsList.style.borderRadius = "12px";
-  actionsList.style.boxShadow = "0 8px 32px rgba(99, 102, 241, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1)";
+  actionsList.style.boxShadow = "0 8px 32px rgba(255, 180, 180, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1)";
   actionsList.style.backdropFilter = "blur(12px)";
   actionsList.style.minWidth = "180px";
-  actionsList.style.border = "1px solid rgba(129, 140, 248, 0.2)";
+  actionsList.style.border = "1px solid rgba(255, 180, 180, 0.2)";
   actionsList.style.position = "relative";
 
   // Create floating X button for menu (top-left corner)
@@ -525,13 +525,13 @@ function ensureFabElements() {
   menuCloseButton.style.height = "32px";
   menuCloseButton.style.borderRadius = "50%";
   menuCloseButton.style.border = "2px solid #ffffff";
-  menuCloseButton.style.background = "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)";
+  menuCloseButton.style.background = "linear-gradient(135deg, #FFB5B5 0%, #D4C5F9 100%)";
   menuCloseButton.style.color = "white";
   menuCloseButton.style.cursor = "pointer";
   menuCloseButton.style.display = "flex";
   menuCloseButton.style.alignItems = "center";
   menuCloseButton.style.justifyContent = "center";
-  menuCloseButton.style.boxShadow = "0 4px 12px rgba(99, 102, 241, 0.4)";
+  menuCloseButton.style.boxShadow = "0 4px 12px rgba(255, 180, 180, 0.4)";
   menuCloseButton.style.transition = "all 0.2s ease";
   menuCloseButton.style.fontSize = "16px";
   menuCloseButton.style.fontWeight = "bold";
@@ -539,11 +539,11 @@ function ensureFabElements() {
 
   menuCloseButton.addEventListener("mouseenter", () => {
     menuCloseButton.style.transform = "scale(1.1) rotate(90deg)";
-    menuCloseButton.style.boxShadow = "0 6px 16px rgba(99, 102, 241, 0.5)";
+    menuCloseButton.style.boxShadow = "0 6px 16px rgba(255, 180, 180, 0.5)";
   });
   menuCloseButton.addEventListener("mouseleave", () => {
     menuCloseButton.style.transform = "scale(1) rotate(0deg)";
-    menuCloseButton.style.boxShadow = "0 4px 12px rgba(99, 102, 241, 0.4)";
+    menuCloseButton.style.boxShadow = "0 4px 12px rgba(255, 180, 180, 0.4)";
   });
   menuCloseButton.addEventListener("click", (e) => {
     e.preventDefault();
@@ -668,7 +668,7 @@ function createActionButton(action: FabAction): HTMLButtonElement {
   button.style.width = "100%";
   button.style.padding = "10px 12px";
   button.style.borderRadius = "8px";
-  button.style.border = "2px solid rgba(99, 102, 241, 0.15)";
+  button.style.border = "2px solid rgba(255, 180, 180, 0.15)";
   button.style.background = "rgba(255, 255, 255, 0.8)";
   button.style.color = "#1e293b";
   button.style.display = "flex";
@@ -701,14 +701,14 @@ function createActionButton(action: FabAction): HTMLButtonElement {
   button.appendChild(label);
 
   button.addEventListener("mouseenter", () => {
-    button.style.background = "linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)";
-    button.style.borderColor = "rgba(99, 102, 241, 0.3)";
+    button.style.background = "linear-gradient(135deg, rgba(255, 180, 180, 0.1) 0%, rgba(181, 231, 221, 0.1) 100%)";
+    button.style.borderColor = "rgba(255, 180, 180, 0.3)";
     button.style.transform = "translateX(-2px)";
     iconContainer.style.transform = "scale(1.1)";
   });
   button.addEventListener("mouseleave", () => {
     button.style.background = "rgba(255, 255, 255, 0.8)";
-    button.style.borderColor = "rgba(99, 102, 241, 0.15)";
+    button.style.borderColor = "rgba(255, 180, 180, 0.15)";
     button.style.transform = "translateX(0)";
     iconContainer.style.transform = "scale(1)";
   });
