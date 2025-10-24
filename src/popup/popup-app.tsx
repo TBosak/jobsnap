@@ -41,26 +41,32 @@ export function PopupApp() {
 
   return (
     <div className="min-w-80 max-w-96 bg-gradient-to-b from-peach/10 to-mint/10 rounded-xl shadow-xl overflow-hidden relative">
-      {/* Floating Settings Button */}
-      <button
-        onClick={() => chrome.runtime.openOptionsPage()}
-        className="
-          absolute top-3 right-3 z-10
-          p-2.5 rounded-full
-          bg-white border-2 border-peach/30
-          shadow-md
-          transition-all duration-base
-          hover:scale-110 hover:shadow-lg hover:border-peach/50 hover:shadow-peach/20
-          active:scale-95
-          focus:outline-none focus:ring-2 focus:ring-peach/50 focus:ring-offset-2
-          group
-        "
-        aria-label="Open settings"
-      >
-        <Settings className="h-5 w-5 text-slate-700 transition-transform duration-500 group-hover:rotate-90" />
-      </button>
+      {/* Header Bar */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+        <h1 className="text-xl font-bold bg-gradient-to-r from-peach to-mint bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(255,180,180,0.3)]">
+          JobSnap
+        </h1>
 
-      <div className="p-4 pt-14">
+        {/* Floating Settings Button */}
+        <button
+          onClick={() => chrome.runtime.openOptionsPage()}
+          className="
+            p-2.5 rounded-full
+            bg-white border-2 border-peach/30
+            shadow-md
+            transition-all duration-base
+            hover:scale-110 hover:shadow-lg hover:border-peach/50 hover:shadow-peach/20
+            active:scale-95
+            focus:outline-none focus:ring-2 focus:ring-peach/50 focus:ring-offset-2
+            group
+          "
+          aria-label="Open settings"
+        >
+          <Settings className="h-5 w-5 text-slate-700 transition-transform duration-500 group-hover:rotate-90" />
+        </button>
+      </div>
+
+      <div className="p-4 pt-2">
         {error && (
           <div className="mb-3 p-3 rounded-lg bg-red-50 border border-red-200">
             <p className="text-sm text-red-700">{error}</p>
