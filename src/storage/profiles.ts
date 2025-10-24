@@ -1,6 +1,7 @@
 import { ProfileRecord } from "../ui-shared/schema";
 import type { ProfileIndexItem, ProfilePayload } from "../ui-shared/messaging";
 import { db } from "../db/db";
+import { calculateCompleteness } from "../ui-shared/utils/profile-completeness";
 
 const ACTIVE_PROFILE_KEY = "jobsnap.activeProfile";
 
@@ -27,7 +28,10 @@ export async function listProfileIndex(): Promise<ProfileIndexItem[]> {
     id: profile.id,
     name: profile.name,
     updatedAt: profile.updatedAt,
-    isActive: profile.id === activeId
+    createdAt: profile.createdAt || profile.updatedAt,
+    isActive: profile.id === activeId,
+    resume: profile.resume,
+    completeness: calculateCompleteness(profile)
   }));
 }
 

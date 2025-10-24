@@ -43,6 +43,9 @@ export interface ProfileIndexItem {
   name: string;
   updatedAt: string;
   isActive: boolean;
+  resume: JsonResume;
+  createdAt: string;
+  completeness?: number;
 }
 
 export interface ProfilePayload {
