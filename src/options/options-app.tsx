@@ -1,16 +1,17 @@
 import { useState } from "react";
-import { Users, Folder, Clock } from "lucide-react";
+import { Users, Folder, Clock, FileText } from "lucide-react";
 import "../ui-shared/mascot-animations.css";
 import { Onboarding } from "./routes/Onboarding";
 import { ProfilesList } from "./routes/ProfilesList";
 import { CollectionsPanel } from "./routes/Collections";
 import { HistoryPanel } from "./routes/History";
+import { ResumeExport } from "./routes/ResumeExport";
 import type { ProfileRecord } from "../ui-shared/schema";
 import { sendMessage } from "../ui-shared/runtime";
 
 const LOGO_URL = "/fullsize.png";
 
-type View = "profiles" | "collections" | "history";
+type View = "profiles" | "collections" | "history" | "export";
 
 export function OptionsApp() {
   const [view, setView] = useState<View>("profiles");
@@ -74,6 +75,7 @@ export function OptionsApp() {
         </header>
         <nav className="flex items-center gap-3">
           <NavButton icon={Users} label="Profiles" active={view === "profiles"} onClick={() => setView("profiles")} />
+          <NavButton icon={FileText} label="Export Resume" active={view === "export"} onClick={() => setView("export")} />
           <NavButton icon={Folder} label="Collections" active={view === "collections"} onClick={() => setView("collections")} />
           <NavButton icon={Clock} label="History" active={view === "history"} onClick={() => setView("history")} />
         </nav>
@@ -96,6 +98,7 @@ export function OptionsApp() {
               </section>
             </div>
           )}
+          {view === "export" && <ResumeExport />}
           {view === "collections" && <CollectionsPanel />}
           {view === "history" && <HistoryPanel />}
         </main>
