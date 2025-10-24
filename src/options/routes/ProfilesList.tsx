@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useEffect, useState, useMemo } from "react";
-import { Download, Pencil, Star, Trash2, Import, Loader2, Search, X } from "lucide-react";
+import { Download, Pencil, Star, Trash2, Linkedin, Loader2, Search, X } from "lucide-react";
 import type { ProfileIndexItem } from "../../ui-shared/messaging";
 import type { ProfileRecord } from "../../ui-shared/schema";
 import { sendMessage } from "../../ui-shared/runtime";
@@ -112,7 +112,7 @@ export function ProfilesList({ onEditProfile, refreshKey = 0, onProfileRemoved }
             type="button"
             onClick={importFromLinkedIn}
             disabled={isImporting}
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-200 transition-all hover:shadow-lg hover:shadow-indigo-300 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-200 transition-all hover:shadow-lg hover:shadow-indigo-300 hover:from-blue-700 hover:to-indigo-700 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:scale-100"
           >
             {isImporting ? (
               <>
@@ -121,7 +121,7 @@ export function ProfilesList({ onEditProfile, refreshKey = 0, onProfileRemoved }
               </>
             ) : (
               <>
-                <Import size={16} />
+                <Linkedin size={16} />
                 Import from LinkedIn
               </>
             )}
@@ -251,7 +251,7 @@ interface IconButtonProps {
 }
 
 function IconButton({ label, icon, onClick, tone }: IconButtonProps) {
-  const base = "inline-flex items-center justify-center rounded-full border p-2 transition-all focus:outline-none focus:ring-2 focus:ring-offset-1";
+  const base = "inline-flex items-center justify-center rounded-full border p-2 transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 hover:scale-110 active:scale-95";
   const palette = {
     primary: "border-indigo-300 bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-600 hover:from-indigo-100 hover:to-purple-100 hover:border-indigo-400 hover:shadow-md hover:shadow-indigo-100 focus:ring-indigo-500",
     muted: "border-slate-200 bg-white text-slate-400 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-500 focus:ring-slate-400",

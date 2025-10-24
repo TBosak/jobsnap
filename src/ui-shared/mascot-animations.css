@@ -1,0 +1,38 @@
+/* Mascot Animations */
+
+/* Subtle bobbing on hover */
+@keyframes mascot-bob {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.mascot-hover:hover {
+  animation: mascot-bob 1.5s ease-in-out infinite;
+}
+
+/* Counter-clockwise 360 spin on click */
+@keyframes mascot-spin-ccw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.mascot-spin {
+  animation: mascot-spin-ccw 1s ease-in-out;
+}
+
+/* Ensure cursor shows it's clickable */
+.mascot-clickable {
+  transition: filter 0.2s ease;
+}
+
+.mascot-clickable:active {
+  filter: brightness(0.95);
+}

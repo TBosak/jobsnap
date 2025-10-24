@@ -21,10 +21,10 @@ export function ProfileCard({ profile, isActive, onSelect }: ProfileCardProps) {
         p-4
         flex items-center gap-4
         transition-all duration-base
-        hover:shadow-lg hover:scale-102
+        hover:shadow-lg hover:scale-105 active:scale-95
         ${isActive
-          ? 'border-peach shadow-glow-active'
-          : 'border-slate-200 hover:border-mint'
+          ? 'border-peach shadow-glow-active bg-peach/5'
+          : 'border-slate-200 hover:border-mint hover:bg-mint/5'
         }
       `}
     >

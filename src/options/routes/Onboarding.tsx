@@ -284,7 +284,7 @@ export function Onboarding({ onProfileSaved, initialProfile, onEditCancel }: Pro
         )}
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <label className="flex h-32 flex-1 min-w-[220px] cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-indigo-200 bg-indigo-50 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100">
+        <label className="flex h-32 flex-1 min-w-[220px] cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-indigo-200 bg-indigo-50 text-sm font-semibold text-indigo-700 transition-all hover:bg-indigo-100 hover:scale-105 hover:border-indigo-300 hover:shadow-md active:scale-95">
           <input
             type="file"
             accept=".pdf,.doc,.docx,application/json"
