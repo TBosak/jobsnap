@@ -1,6 +1,6 @@
 # JobSnap Chrome Extension
 
-JobSnap is a privacy-focused Chrome extension that streamlines job applications by combining intelligent resume parsing, multi-profile management, and automatic form filling across major job platforms. All processing happens locally—your resume data never leaves your device.
+JobSnap is a privacy-focused Chrome extension that streamlines job applications by combining intelligent resume parsing, multi-profile management, and automatic form filling across major job platforms. Featuring a bold pastel gradient UI that makes job hunting feel less stressful, all processing happens locally—your resume data never leaves your device.
 
 ## What JobSnap Does
 
@@ -70,10 +70,23 @@ JobSnap is a privacy-focused Chrome extension that streamlines job applications 
 ### Job Detection
 Content scripts monitor all websites and can detect/save job postings from any platform.
 
+## Design
+
+### Pastel Gradient UI
+
+JobSnap features a bold, modern interface built with a pastel gradient design system:
+
+- **Calming Colors**: Soft peach, mint, lavender, and sky blue gradients
+- **Bold Through Scale**: Generous gradients, spacious layouts, prominent elements
+- **Smooth Animations**: Polished transitions and hover effects
+- **Professional Yet Friendly**: Appeals to job seekers across industries
+
+The UI makes job hunting feel less stressful by combining visual energy with calming pastel tones. See [UI Design System](docs/ui-design-system.md) for complete specifications.
+
 ## Tech Stack
 
 **Frontend**: React 18 + TypeScript + Vite
-**Styling**: Tailwind CSS + shadcn/ui components
+**Styling**: Tailwind CSS + Pastel Gradient Design System + shadcn/ui components
 **State**: Chrome Storage + Dexie (IndexedDB)
 **AI/ML**: Hugging Face Transformers.js (on-device embeddings)
 **Parsing**: pdf-parse, pdfjs-dist, mammoth, tesseract.js

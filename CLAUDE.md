@@ -84,11 +84,120 @@ interface JDItem {
 
 ### Technology Stack
 - **Frontend**: React 18 + TypeScript + Vite
-- **Styling**: Tailwind CSS + shadcn/ui components
+- **Styling**: Tailwind CSS + Pastel Gradient Design System + shadcn/ui components
 - **State**: Chrome storage + Dexie (IndexedDB)
 - **AI/ML**: Hugging Face Transformers.js for embeddings
 - **Parsing**: pdf-parse, mammoth, tesseract.js
 - **Testing**: Vitest
+
+## Component Architecture
+
+### Pastel Gradient UI System
+
+JobSnap implements a modular pastel gradient design system built on reusable component bricks. Each brick is a self-contained UI element with clear interfaces and responsibilities. See [UI Design System](docs/ui-design-system.md) for complete specifications.
+
+#### GradientHeader
+
+**Purpose**: Full-width gradient header with title and optional action buttons
+
+**Interface**:
+```typescript
+interface GradientHeaderProps {
+  title: string;
+  subtitle?: string;
+  action?: React.ReactNode;
+  gradientVariant?: 'primary' | 'secondary' | 'tertiary';
+}
+```
+
+**Responsibilities**:
+- Renders bold pastel gradient background using CSS custom properties
+- Provides consistent spacing and typography
+- Supports optional action buttons for primary interactions
+
+**Usage**: Top of popup UI, page headers in options interface
+
+**Dependencies**: Tailwind gradient utilities, CSS animation variables
+
+#### ProfileCard
+
+**Purpose**: Interactive profile list item with completeness indicator and hover effects
+
+**Interface**:
+```typescript
+interface ProfileCardProps {
+  profile: ProfileRecord;
+  isActive: boolean;
+  onSelect: (profileId: string) => void;
+}
+```
+
+**Responsibilities**:
+- Displays profile name and metadata
+- Shows visual completeness via ProgressRing component
+- Applies active state styling (glow effect, border highlight)
+- Handles click interactions for profile switching
+
+**Usage**: Profile selection in popup and options pages
+
+**Dependencies**: ProgressRing component, Tailwind animation utilities
+
+#### FloatingActionButton (FAB)
+
+**Purpose**: Circular gradient button for primary actions
+
+**Interface**:
+```typescript
+interface FloatingActionButtonProps {
+  icon: React.ComponentType<{ className?: string }>;
+  onClick: () => void;
+  label: string; // for accessibility
+  position?: 'bottom-right' | 'bottom-left';
+}
+```
+
+**Responsibilities**:
+- Renders fixed-position circular button with gradient background
+- Provides tactile press animation on click
+- Includes aria-label for screen readers
+- Supports custom positioning
+
+**Usage**: Primary actions in popup (e.g., "Add Profile", "Autofill")
+
+**Dependencies**: Tailwind positioning utilities, CSS spring animations
+
+#### ProgressRing
+
+**Purpose**: Circular SVG progress indicator with gradient stroke
+
+**Interface**:
+```typescript
+interface ProgressRingProps {
+  percentage: number; // 0-100
+  size?: number; // diameter in pixels
+  strokeWidth?: number;
+  gradientId?: string; // unique ID for SVG gradient definition
+}
+```
+
+**Responsibilities**:
+- Renders SVG circle with animated stroke-dasharray
+- Uses pastel gradient for stroke color
+- Displays percentage text in center
+- Animates on mount with draw effect
+
+**Usage**: Profile completeness indicators in cards and lists
+
+**Dependencies**: Inline SVG, Tailwind text utilities
+
+### Design Token Integration
+
+All components reference centralized design tokens defined in:
+- **Colors**: `src/ui-shared/gradients.css` (pastel palette variables)
+- **Animations**: `src/ui-shared/animations.css` (timing and easing curves)
+- **Tailwind Config**: `tailwind.config.ts` (extended theme with custom gradients)
+
+This ensures consistent styling across all UI surfaces while maintaining the modular "bricks and studs" architecture.
 
 ## Key Development Patterns
 

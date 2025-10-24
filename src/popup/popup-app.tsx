@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
+import { Settings } from "lucide-react";
 import type { ProfileIndexItem } from "../ui-shared/messaging";
 import { sendMessage } from "../ui-shared/runtime";
+import { GradientHeader } from "./components/GradientHeader";
+import { ProfileCard } from "./components/ProfileCard";
+import { FloatingActionButton } from "./components/FloatingActionButton";
+import type { ProfileRecord } from "../ui-shared/schema";
 
 export function PopupApp() {
   const [profiles, setProfiles] = useState<ProfileIndexItem[]>([]);
@@ -25,39 +30,72 @@ export function PopupApp() {
     await refresh();
   }
 
+  // Convert ProfileIndexItem to ProfileRecord for ProfileCard
+  function toProfileRecord(item: ProfileIndexItem): ProfileRecord {
+    return {
+      id: item.id,
+      name: item.name,
+      resume: item.resume,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+    };
+  }
+
   return (
-    <div className="min-w-72 max-w-96 p-4 text-slate-900">
-      <header className="mb-3 flex items-center justify-between">
-        <h1 className="text-lg font-semibold">JobSnap</h1>
-        <button
-          className="rounded-full bg-blue-600 px-3 py-1 text-sm font-medium text-white hover:bg-blue-700"
-          onClick={() => chrome.runtime.openOptionsPage()}
-        >
-          Manage
-        </button>
-      </header>
-      {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
-      <ul className="space-y-2">
-        {profiles.map((profile) => (
-          <li key={profile.id} className="rounded border border-slate-200 p-3">
-            <div className="flex items-center justify-between">
-              <span className="font-medium">{profile.name}</span>
-              {profile.isActive ? (
-                <span className="text-xs font-semibold uppercase text-blue-600">Active</span>
-              ) : (
-                <button
-                  className="text-xs font-semibold uppercase text-blue-600"
-                  onClick={() => makeActive(profile.id)}
-                >
-                  Set active
-                </button>
-              )}
-            </div>
-            <p className="mt-1 text-xs text-slate-500">Updated {new Date(profile.updatedAt).toLocaleString()}</p>
-          </li>
-        ))}
-        {!profiles.length && <p className="text-sm text-slate-500">No profiles yet. Import your resume from the options page.</p>}
-      </ul>
+    <div className="min-w-80 max-w-96 bg-white rounded-xl shadow-xl overflow-hidden">
+      <GradientHeader
+        title="JobSnap"
+        subtitle="Your profile, autofilled"
+        action={
+          <button
+            onClick={() => chrome.runtime.openOptionsPage()}
+            className="
+              p-2 rounded-full
+              bg-white/20 hover:bg-white/30
+              transition-all duration-base
+              backdrop-blur-sm
+            "
+            aria-label="Open settings"
+          >
+            <Settings className="h-5 w-5 text-slate-700" />
+          </button>
+        }
+      />
+
+      <div className="p-4">
+        {error && (
+          <div className="mb-3 p-3 rounded-lg bg-red-50 border border-red-200">
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
+
+        {profiles.length > 0 ? (
+          <div className="space-y-3">
+            {profiles.map((profile) => (
+              <ProfileCard
+                key={profile.id}
+                profile={toProfileRecord(profile)}
+                isActive={profile.isActive}
+                onSelect={makeActive}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-sm text-slate-500 mb-2">No profiles yet</p>
+            <button
+              onClick={() => chrome.runtime.openOptionsPage()}
+              className="
+                text-sm font-medium text-peach
+                hover:text-peach-dark
+                transition-colors duration-base
+              "
+            >
+              Import your resume to get started →
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
