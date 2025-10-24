@@ -1,14 +1,14 @@
 interface ProgressRingProps {
   percentage: number;           // 0-100
   size?: number;                // diameter in pixels (default: 64)
-  strokeWidth?: number;         // stroke thickness (default: 4)
+  strokeWidth?: number;         // stroke thickness (default: 6)
   gradientId?: string;          // unique ID for SVG gradient
 }
 
 export function ProgressRing({
   percentage,
   size = 64,
-  strokeWidth = 4,
+  strokeWidth = 6,
   gradientId = `progress-${Math.random().toString(36).slice(2, 9)}`
 }: ProgressRingProps) {
   const radius = (size - strokeWidth) / 2;
@@ -48,7 +48,8 @@ export function ProgressRing({
         y={size / 2}
         textAnchor="middle"
         dominantBaseline="middle"
-        className="rotate-90 text-xs font-semibold fill-slate-700"
+        className="text-sm font-bold fill-slate-800"
+        transform={`rotate(90 ${size / 2} ${size / 2})`}
       >
         {percentage}%
       </text>

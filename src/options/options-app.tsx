@@ -47,7 +47,7 @@ export function OptionsApp() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-peach/10 via-white to-mint/10 py-10 text-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-peach/30 via-white to-mint/30 py-10 text-slate-900">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6">
         <header className="rounded-xl border border-slate-100 bg-white/90 p-6 shadow-sm backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -109,7 +109,7 @@ function NavButton({ icon: Icon, label, active, onClick }: NavButtonProps) {
       onClick={onClick}
       className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-base focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:ring-offset-1 ${
         active
-          ? "border-peach bg-peach/10 text-peach shadow-glow-active"
+          ? "border-peach bg-peach/20 text-slate-800 shadow-glow-active"
           : "border-slate-200 bg-white text-slate-500 hover:border-mint hover:text-slate-700"
       }`}
     >
