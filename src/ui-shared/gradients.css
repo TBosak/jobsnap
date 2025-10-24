@@ -14,7 +14,7 @@
 
   /* Active State */
   --color-active: #FFD4D4;
-  --glow-active: 0 0 24px rgba(255, 180, 180, 0.5);
+  --glow-active: 0 0 32px rgba(255, 180, 180, 0.8);
   --glow-hover: 0 0 15px rgba(181, 231, 221, 0.4);
 
   /* Backgrounds */
