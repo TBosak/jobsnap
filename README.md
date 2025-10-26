@@ -240,6 +240,78 @@ jobsnap/
 - Content scripts detect platform via URL patterns
 - Profile skills are computed/cached for performance
 
+## Resume Templates
+
+### Using Templates
+
+JobSnap includes a flexible resume export system that lets you generate professional resumes from your profile data:
+
+1. **Built-in templates**: Use the default professional resume template included with JobSnap
+2. **Custom templates**: Upload your own DOCX templates with personalized designs
+3. **Flexible formatting**: Templates support loops, conditionals, and flexible date formatting
+
+### Creating Custom Templates
+
+Want to create your own resume template?
+
+- **In-app help**: Click the help icon (?) next to "Upload Custom Template" for an interactive guide
+- **Template Guide**: See the [Template Guide](public/resumes/TEMPLATE_GUIDE.md) for complete documentation on:
+  - Template syntax and available fields
+  - Date formatting options (full month names, short names, numeric)
+  - Skills, work experience, education, and certification sections
+  - Loop and conditional syntax
+  - Complete working examples
+
+### Contributing Resume Templates
+
+We welcome contributions of resume templates! If you've created a great template and want to share it with the community:
+
+#### For Developers (Built-in Templates)
+
+1. **Create your template**: Design a DOCX template using docxtemplater syntax
+2. **Test thoroughly**: Export resumes with your template using different profiles
+3. **Add to manifest**: Update `public/resumes/manifest.json`:
+   ```json
+   {
+     "name": "modern-tech",
+     "displayName": "Modern Tech Resume",
+     "path": "/resumes/modern-tech.docx",
+     "description": "Clean, modern template optimized for tech roles",
+     "builtin": true
+   }
+   ```
+4. **Place template file**: Add your `.docx` file to `public/resumes/`
+5. **Submit PR**: Include screenshots of example output and describe the template's style/use case
+6. **Follow guidelines**:
+   - Templates should work with incomplete profiles (gracefully handle missing data)
+   - Use semantic field names from the template guide
+   - Include at least one date formatting example
+   - Test with profiles containing varying amounts of data
+
+#### For Users (Share Your Templates)
+
+If you've created a custom template you'd like to share but don't want to submit a PR:
+
+1. **Upload to GitHub**: Create a Gist or repository with your template file
+2. **Create an issue**: Open an issue titled "Resume Template: [Template Name]"
+3. **Include details**:
+   - Template name and description
+   - Target use case (tech, creative, academic, executive, etc.)
+   - Link to download
+   - Screenshots of sample output
+   - Any special formatting notes
+
+We'll review community templates and may include popular ones in future releases!
+
+#### Template Design Best Practices
+
+- **ATS-friendly**: Use standard fonts, clear section headers, and simple formatting
+- **Flexible sections**: Use conditionals for optional sections like certifications
+- **Date flexibility**: Provide multiple date format options or use the most common format
+- **Test edge cases**: Verify with profiles that have minimal data, lots of data, and "Present" employment
+- **Visual appeal**: Balance readability with professional design
+- **Document field usage**: Comment on which template fields you're using
+
 ## Contributing
 
 Contributions are welcome! Please follow these guidelines:
