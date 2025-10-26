@@ -187,19 +187,19 @@ export function ResumeExport() {
                 {profile.name}
               </h3>
               <p className="text-sm text-slate-600 mb-2">
-                {profile.title || "No title specified"}
+                {profile.resume.basics?.label || "No title specified"}
               </p>
               <div className="text-sm text-slate-500 space-y-1">
-                {profile.email && (
+                {profile.resume.basics?.email && (
                   <div className="flex items-center gap-2">
                     <span className="font-medium">Email:</span>
-                    <span>{profile.email}</span>
+                    <span>{profile.resume.basics.email}</span>
                   </div>
                 )}
-                {profile.phone && (
+                {profile.resume.basics?.phone && (
                   <div className="flex items-center gap-2">
                     <span className="font-medium">Phone:</span>
-                    <span>{profile.phone}</span>
+                    <span>{profile.resume.basics.phone}</span>
                   </div>
                 )}
               </div>

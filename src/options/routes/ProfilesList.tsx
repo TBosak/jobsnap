@@ -1,21 +1,27 @@
 import type { ReactNode } from "react";
 import { useEffect, useState, useMemo } from "react";
-import { Download, Pencil, Star, Trash2, Linkedin, Loader2, Search, X } from "lucide-react";
+import { Download, Pencil, Star, Trash2, Linkedin, Loader2, Search, X, Upload } from "lucide-react";
 import type { ProfileIndexItem } from "../../ui-shared/messaging";
 import type { ProfileRecord } from "../../ui-shared/schema";
 import { sendMessage } from "../../ui-shared/runtime";
+import { analyzeMerge, type MergePreview } from "../../utils/resume-merger";
+import { ImportPreviewModal } from "../../components/ImportPreviewModal";
+import { computeProfileSkills } from "../../analysis/skills";
 
 interface Props {
   onEditProfile?: (id: string) => void;
+  onImportToProfile?: (id: string) => void;
   refreshKey?: number;
   onProfileRemoved?: (id: string) => void;
+  importingProfileId?: string | null;
 }
 
-export function ProfilesList({ onEditProfile, refreshKey = 0, onProfileRemoved }: Props) {
+export function ProfilesList({ onEditProfile, onImportToProfile, refreshKey = 0, onProfileRemoved, importingProfileId }: Props) {
   const [profiles, setProfiles] = useState<ProfileIndexItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [mergePreview, setMergePreview] = useState<MergePreview | null>(null);
 
   useEffect(() => {
     refresh();
@@ -97,13 +103,62 @@ export function ProfilesList({ onEditProfile, refreshKey = 0, onProfileRemoved }
         return;
       }
 
-      // Refresh the profiles list
-      await refresh();
+      // If importing to an existing profile, use fill-only merge
+      if (importingProfileId) {
+        const existingProfile = await sendMessage<ProfileRecord>({ type: "GET_PROFILE", id: importingProfileId });
+        if (!existingProfile) {
+          setError("Could not find profile to import to");
+          return;
+        }
+
+        // Analyze merge for conflicts
+        const preview = analyzeMerge(existingProfile.resume, result, { arrays: 'merge' });
+
+        if (preview.hasConflicts || preview.newFields.length > 0) {
+          setMergePreview(preview);
+        } else {
+          setError("No new data to import from LinkedIn - all fields already populated.");
+        }
+      } else {
+        // Normal flow: Create new profile (handled by background script)
+        await refresh();
+      }
 
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setIsImporting(false);
+    }
+  }
+
+  async function handleConfirmLinkedInImport() {
+    if (!mergePreview || !importingProfileId) return;
+
+    try {
+      const timestamp = new Date().toISOString();
+      const mergedResume = mergePreview.mergedData;
+      const computedSkills = await computeProfileSkills(mergedResume);
+
+      // Get the profile name
+      const existingProfile = await sendMessage<ProfileRecord>({ type: "GET_PROFILE", id: importingProfileId });
+      const profileName = existingProfile?.name || "Profile";
+
+      await sendMessage({
+        type: "UPSERT_PROFILE",
+        profile: {
+          id: importingProfileId,
+          name: profileName,
+          resume: mergedResume,
+          updatedAt: timestamp,
+          computedSkills,
+          computedAt: timestamp
+        }
+      });
+
+      setMergePreview(null);
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -137,7 +192,7 @@ export function ProfilesList({ onEditProfile, refreshKey = 0, onProfileRemoved }
             ) : (
               <>
                 <Linkedin size={16} />
-                Import from LinkedIn
+                {importingProfileId ? "Import LinkedIn to Profile" : "Import from LinkedIn"}
               </>
             )}
           </button>
@@ -192,12 +247,27 @@ export function ProfilesList({ onEditProfile, refreshKey = 0, onProfileRemoved }
 
       <ul className="space-y-3">
         {filteredProfiles.map((profile) => (
-          <li key={profile.id} className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:shadow-lg hover:shadow-indigo-100 hover:border-indigo-300">
+          <li
+            key={profile.id}
+            className={`group relative overflow-hidden rounded-xl border p-4 shadow-sm transition-all ${
+              importingProfileId === profile.id
+                ? "border-blue-300 bg-gradient-to-r from-blue-50/80 via-indigo-50/50 to-white shadow-lg shadow-blue-100"
+                : "border-slate-200 bg-white hover:shadow-lg hover:shadow-indigo-100 hover:border-indigo-300"
+            }`}
+          >
             {/* Gradient accent bar */}
-            <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-indigo-500 to-purple-500 opacity-0 transition-opacity group-hover:opacity-100" />
+            <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b transition-opacity ${
+              importingProfileId === profile.id
+                ? "from-blue-500 to-indigo-500 opacity-100"
+                : "from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-100"
+            }`} />
 
             {/* Subtle gradient overlay on hover */}
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-50/50 via-purple-50/30 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+            <div className={`absolute inset-0 bg-gradient-to-r transition-opacity ${
+              importingProfileId === profile.id
+                ? "from-blue-50/30 via-indigo-50/20 to-transparent opacity-100"
+                : "from-indigo-50/50 via-purple-50/30 to-transparent opacity-0 group-hover:opacity-100"
+            }`} />
 
             <div className="relative flex items-center justify-between">
               <div className="flex-1 min-w-0">
@@ -207,6 +277,12 @@ export function ProfilesList({ onEditProfile, refreshKey = 0, onProfileRemoved }
                     <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
                       <Star size={12} fill="currentColor" />
                       Active
+                    </span>
+                  )}
+                  {importingProfileId === profile.id && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 px-2 py-0.5 text-xs font-medium text-blue-700 animate-pulse">
+                      <Upload size={12} />
+                      Import Mode
                     </span>
                   )}
                 </div>
@@ -244,6 +320,12 @@ export function ProfilesList({ onEditProfile, refreshKey = 0, onProfileRemoved }
                   icon={<Pencil className="text-slate-500" size={16} />}
                 />
                 <IconButton
+                  label={importingProfileId === profile.id ? "Importing to this profile" : "Import data to profile"}
+                  tone={importingProfileId === profile.id ? "active" : "neutral"}
+                  onClick={() => onImportToProfile?.(profile.id)}
+                  icon={<Upload className={importingProfileId === profile.id ? "text-blue-600" : "text-slate-500"} size={16} />}
+                />
+                <IconButton
                   label="Remove profile"
                   tone="danger"
                   onClick={() => removeProfile(profile.id)}
@@ -254,6 +336,14 @@ export function ProfilesList({ onEditProfile, refreshKey = 0, onProfileRemoved }
           </li>
         ))}
       </ul>
+
+      {mergePreview && (
+        <ImportPreviewModal
+          preview={mergePreview}
+          onConfirm={handleConfirmLinkedInImport}
+          onCancel={() => setMergePreview(null)}
+        />
+      )}
     </div>
   );
 }
@@ -262,7 +352,7 @@ interface IconButtonProps {
   label: string;
   icon: ReactNode;
   onClick: () => void;
-  tone: "primary" | "muted" | "neutral" | "danger";
+  tone: "primary" | "muted" | "neutral" | "danger" | "active";
 }
 
 function IconButton({ label, icon, onClick, tone }: IconButtonProps) {
@@ -271,7 +361,8 @@ function IconButton({ label, icon, onClick, tone }: IconButtonProps) {
     primary: "border-indigo-300 bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-600 hover:from-indigo-100 hover:to-purple-100 hover:border-indigo-400 hover:shadow-md hover:shadow-indigo-100 focus:ring-indigo-500",
     muted: "border-slate-200 bg-white text-slate-400 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-500 focus:ring-slate-400",
     neutral: "border-slate-200 bg-white text-slate-500 hover:bg-gradient-to-br hover:from-indigo-50/50 hover:to-purple-50/50 hover:border-indigo-200 hover:text-indigo-600 focus:ring-indigo-400",
-    danger: "border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:border-red-300 hover:shadow-md hover:shadow-red-100 focus:ring-red-500"
+    danger: "border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:border-red-300 hover:shadow-md hover:shadow-red-100 focus:ring-red-500",
+    active: "border-blue-300 bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-600 shadow-md shadow-blue-100 hover:from-blue-100 hover:to-indigo-100 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-200 focus:ring-blue-500 ring-2 ring-blue-200 ring-offset-1"
   } as const;
 
   return (

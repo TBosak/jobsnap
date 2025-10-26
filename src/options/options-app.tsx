@@ -16,11 +16,13 @@ type View = "profiles" | "collections" | "history" | "export";
 export function OptionsApp() {
   const [view, setView] = useState<View>("profiles");
   const [editingProfile, setEditingProfile] = useState<ProfileRecord | null>(null);
+  const [importingToProfile, setImportingToProfile] = useState<ProfileRecord | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
   const [profilesRefreshKey, setProfilesRefreshKey] = useState(0);
 
   async function handleEditProfile(id: string) {
     setEditError(null);
+    setImportingToProfile(null); // Clear import mode
     try {
       const profile = await sendMessage<ProfileRecord>({ type: "GET_PROFILE", id });
       setEditingProfile(profile);
@@ -30,20 +32,37 @@ export function OptionsApp() {
     }
   }
 
+  async function handleImportToProfile(id: string) {
+    setEditError(null);
+    setEditingProfile(null); // Clear edit mode
+    try {
+      const profile = await sendMessage<ProfileRecord>({ type: "GET_PROFILE", id });
+      setImportingToProfile(profile);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setEditError(`Unable to load profile: ${message}`);
+    }
+  }
+
   function handleProfileSaved() {
     setProfilesRefreshKey((key) => key + 1);
     setEditingProfile(null);
+    setImportingToProfile(null);
     setEditError(null);
   }
 
   function handleCancelEdit() {
     setEditingProfile(null);
+    setImportingToProfile(null);
     setEditError(null);
   }
 
   function handleProfileRemoved(id: string) {
     if (editingProfile?.id === id) {
       setEditingProfile(null);
+    }
+    if (importingToProfile?.id === id) {
+      setImportingToProfile(null);
     }
     setProfilesRefreshKey((key) => key + 1);
   }
@@ -64,7 +83,11 @@ export function OptionsApp() {
                 }}
               />
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-slate-900">JobSnap</h1>
+                <h1 className="text-3xl font-semibold tracking-tight">
+                  <span className="bg-gradient-to-r from-[#FFB5B5] via-[#D4C5F9] to-[#B5E7DD] bg-clip-text text-transparent">
+                    JobSnap
+                  </span>
+                </h1>
                 <p className="text-sm text-slate-500">
                   Your AI-powered career co-pilot that revolutionizes job hunting with intelligent autofill, skill gap analysis, and seamless application tracking.
                 </p>
@@ -75,9 +98,9 @@ export function OptionsApp() {
         </header>
         <nav className="flex items-center gap-3">
           <NavButton icon={Users} label="Profiles" active={view === "profiles"} onClick={() => setView("profiles")} />
-          <NavButton icon={FileText} label="Export Resume" active={view === "export"} onClick={() => setView("export")} />
           <NavButton icon={Folder} label="Collections" active={view === "collections"} onClick={() => setView("collections")} />
           <NavButton icon={Clock} label="History" active={view === "history"} onClick={() => setView("history")} />
+          <NavButton icon={FileText} label="Resumes" active={view === "export"} onClick={() => setView("export")} />
         </nav>
         <main className="rounded-2xl border border-peach/20 bg-white/95 p-5 shadow-lg backdrop-blur">
           {view === "profiles" && (
@@ -86,14 +109,17 @@ export function OptionsApp() {
                 <Onboarding
                   onProfileSaved={handleProfileSaved}
                   initialProfile={editingProfile}
+                  importingProfile={importingToProfile}
                   onEditCancel={handleCancelEdit}
                 />
               </section>
               <section className="rounded-xl bg-white/60 p-6 shadow-md border border-slate-100 transition-all duration-base hover:shadow-lg">
                 <ProfilesList
                   onEditProfile={handleEditProfile}
+                  onImportToProfile={handleImportToProfile}
                   refreshKey={profilesRefreshKey}
                   onProfileRemoved={handleProfileRemoved}
+                  importingProfileId={importingToProfile?.id ?? null}
                 />
               </section>
             </div>

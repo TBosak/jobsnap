@@ -39,10 +39,13 @@ import {
   Users
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { mergeResumeData, fillEmptyFields, analyzeMerge, type MergePreview } from "../../utils/resume-merger";
+import { ImportPreviewModal } from "../../components/ImportPreviewModal";
 
 interface Props {
   onProfileSaved?: () => void;
   initialProfile?: ProfileRecord | null;
+  importingProfile?: ProfileRecord | null;
   onEditCancel?: () => void;
 }
 
@@ -77,7 +80,7 @@ const TABS: Array<{ id: TabId; label: string; icon: LucideIcon }> = [
   { id: "raw", label: "Raw", icon: Braces }
 ];
 
-export function Onboarding({ onProfileSaved, initialProfile, onEditCancel }: Props) {
+export function Onboarding({ onProfileSaved, initialProfile, importingProfile, onEditCancel }: Props) {
   const [status, setStatus] = useState<"idle" | "parsing" | "ready" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
   const [rawText, setRawText] = useState<string>("");
@@ -97,27 +100,86 @@ export function Onboarding({ onProfileSaved, initialProfile, onEditCancel }: Pro
 }`;
   const [showJsonModal, setShowJsonModal] = useState(false);
   const [jsonModalValue, setJsonModalValue] = useState(DEFAULT_JSON_SAMPLE);
+  const [mergePreview, setMergePreview] = useState<MergePreview | null>(null);
 
   const isReady = status === "ready" && !!resume;
 
   const skillsList = useMemo(() => resume?.skills ?? [], [resume]);
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
     setStatus("parsing");
     setError(null);
+
     try {
-      const result = await parseResume(file);
-      setResume(result.resume);
-      setRawText(result.rawText);
-      setRawDraft(JSON.stringify(result.resume, null, 2));
-      setParser(result.meta.parser);
-      if (result.resume.basics?.name) {
-        setProfileName(result.resume.basics.name);
+      // If importing/editing existing profile and multiple files, parse and merge all
+      if ((importingProfile || initialProfile) && files.length > 1) {
+        await handleMultiFileImport(Array.from(files));
+        return;
       }
-      setActiveTab("basics");
-      setStatus("ready");
+
+      // Single file upload
+      const file = files[0];
+      const result = await parseResume(file);
+
+      // If importing or editing an existing profile, use fill-only merge
+      const existingProfile = importingProfile || initialProfile;
+      if (existingProfile) {
+        const preview = analyzeMerge(existingProfile.resume, result.resume, { arrays: 'merge' });
+
+        // Only show preview if there are conflicts or new fields
+        if (preview.hasConflicts || preview.newFields.length > 0) {
+          setMergePreview(preview);
+        } else {
+          // No changes needed
+          setError("No new data to import - all fields already populated.");
+          setStatus("error");
+        }
+      } else {
+        // Creating a brand new profile - use imported data as-is
+        setResume(result.resume);
+        setRawText(result.rawText);
+        setRawDraft(JSON.stringify(result.resume, null, 2));
+        setParser(result.meta.parser);
+        if (result.resume.basics?.name) {
+          setProfileName(result.resume.basics.name);
+        }
+        setActiveTab("basics");
+        setStatus("ready");
+      }
+    } catch (err) {
+      setStatus("error");
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  async function handleMultiFileImport(files: File[]) {
+    try {
+      const parsedResumes: JsonResume[] = [];
+
+      // Parse all files
+      for (const file of files) {
+        const result = await parseResume(file);
+        parsedResumes.push(result.resume);
+      }
+
+      // Merge all parsed resumes
+      const merged = mergeResumeData(parsedResumes);
+
+      // If importing/editing an existing profile, use fill-only merge
+      const existingProfile = importingProfile || initialProfile;
+      if (existingProfile) {
+        const preview = analyzeMerge(existingProfile.resume, merged, { arrays: 'merge' });
+
+        if (preview.hasConflicts || preview.newFields.length > 0) {
+          setMergePreview(preview);
+        } else {
+          setError("No new data to import from these files.");
+          setStatus("error");
+        }
+      }
     } catch (err) {
       setStatus("error");
       setError(err instanceof Error ? err.message : String(err));
@@ -251,26 +313,77 @@ export function Onboarding({ onProfileSaved, initialProfile, onEditCancel }: Pro
       setRawText("");
       setActiveTab("basics");
       setCurrentProfileId(initialProfile.id);
+      setMergePreview(null);
     } else if (previousProfileId.current) {
       resetState();
     }
     previousProfileId.current = initialProfile?.id ?? null;
   }, [initialProfile]);
 
-  const isEditing = Boolean(currentProfileId);
+  // Handle import mode
+  useEffect(() => {
+    if (importingProfile) {
+      setStatus("idle");
+      setError(null);
+      setResume(null);
+      setProfileName(importingProfile.name);
+      setParser("import-mode");
+      setRawDraft("");
+      setRawText("");
+      setActiveTab("basics");
+      setCurrentProfileId(importingProfile.id);
+      setMergePreview(null);
+    }
+  }, [importingProfile]);
+
+  async function handleConfirmImport() {
+    if (!mergePreview) return;
+
+    try {
+      const timestamp = new Date().toISOString();
+      const mergedResume = mergePreview.mergedData;
+      const computedSkills = await computeProfileSkills(mergedResume);
+
+      await sendMessage({
+        type: "UPSERT_PROFILE",
+        profile: {
+          id: currentProfileId ?? undefined,
+          name: profileName,
+          resume: mergedResume,
+          updatedAt: timestamp,
+          computedSkills,
+          computedAt: timestamp
+        }
+      });
+
+      setMergePreview(null);
+      onProfileSaved?.();
+      resetState();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
+    }
+  }
+
+  const isEditing = Boolean(currentProfileId && initialProfile);
+  const isImporting = Boolean(currentProfileId && importingProfile);
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">{isEditing ? "Edit profile" : "Import your resume"}</h2>
+          <h2 className="text-lg font-semibold">
+            {isImporting ? `Import data to "${profileName}"` : isEditing ? "Edit profile" : "Import your resume"}
+          </h2>
           <p className="text-sm text-slate-500">
-            {isEditing
-              ? "Update fields directly or drop a new resume to refresh this profile."
-              : "Drop a PDF/DOCX or import a JSON Resume, review the parsed fields, and save your profile."}
+            {isImporting
+              ? "Upload one or more resume files to fill in missing fields. Existing data will be preserved."
+              : isEditing
+                ? "Update fields directly or upload resume files to add missing data. Existing data will be preserved."
+                : "Drop a PDF/DOCX or import a JSON Resume, review the parsed fields, and save your profile."}
           </p>
         </div>
-        {isEditing && (
+        {(isEditing || isImporting) && (
           <button
             className="text-sm font-semibold text-blue-600"
             type="button"
@@ -279,7 +392,7 @@ export function Onboarding({ onProfileSaved, initialProfile, onEditCancel }: Pro
               onEditCancel?.();
             }}
           >
-            Exit editing
+            {isImporting ? "Cancel import" : "Exit editing"}
           </button>
         )}
       </div>
@@ -288,26 +401,40 @@ export function Onboarding({ onProfileSaved, initialProfile, onEditCancel }: Pro
           <input
             type="file"
             accept=".pdf,.doc,.docx,application/json"
+            multiple={isImporting || isEditing}
             className="hidden"
             onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (!file) return;
-              if (file.type === "application/json" || file.name.toLowerCase().endsWith(".json")) {
-                importJsonFile(file);
-                event.target.value = "";
-                return;
+              const files = event.target.files;
+              if (!files || files.length === 0) return;
+
+              // Handle JSON files specially (single file only)
+              if (files.length === 1) {
+                const file = files[0];
+                if (file.type === "application/json" || file.name.toLowerCase().endsWith(".json")) {
+                  importJsonFile(file);
+                  event.target.value = "";
+                  return;
+                }
               }
+
               handleFileChange(event);
+              event.target.value = "";
             }}
           />
-          {status === "parsing" ? "Parsing resume…" : "Upload resume (PDF/DOCX/JSON)"}
+          {status === "parsing"
+            ? "Parsing resume…"
+            : isImporting || isEditing
+              ? "Upload resume files (PDF/DOCX/JSON)"
+              : "Upload resume (PDF/DOCX/JSON)"}
         </label>
-        <IconBadgeButton
-          label="Paste JSON Resume"
-          icon={<FileJson size={18} />}
-          tone="accent"
-          onClick={() => setShowJsonModal(true)}
-        />
+        {!isImporting && (
+          <IconBadgeButton
+            label="Paste JSON Resume"
+            icon={<FileJson size={18} />}
+            tone="accent"
+            onClick={() => setShowJsonModal(true)}
+          />
+        )}
       </div>
       {isReady && resume && (
         <div className="space-y-4">
@@ -365,6 +492,14 @@ export function Onboarding({ onProfileSaved, initialProfile, onEditCancel }: Pro
             setJsonModalValue(value);
             importJsonString(value);
           }}
+        />
+      )}
+
+      {mergePreview && (
+        <ImportPreviewModal
+          preview={mergePreview}
+          onConfirm={handleConfirmImport}
+          onCancel={() => setMergePreview(null)}
         />
       )}
     </div>
