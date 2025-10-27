@@ -162,7 +162,7 @@ export async function saveCurrentJobToCollections(): Promise<string | null> {
 
   // If we're on a Lever application form, fetch the job description from the actual job posting page
   const url = new URL(currentContext.url);
-  if (url.hostname.endsWith(".lever.co") && url.pathname.endsWith("/apply")) {
+  if (url.hostname.endsWith(".lever.co") && url.pathname.includes("/apply")) {
     try {
       const jobPostingUrl = url.pathname.replace(/\/apply$/, "");
       const fullJobPostingUrl = `${url.origin}${jobPostingUrl}`;
@@ -179,7 +179,7 @@ export async function saveCurrentJobToCollections(): Promise<string | null> {
       const doc = parser.parseFromString(html, "text/html");
 
       // Extract job posting from the fetched page
-      const extraction = extractJobPosting(doc, new URL(fullJobPostingUrl));
+      const extraction = await extractJobPosting(doc, new URL(fullJobPostingUrl));
       if (extraction && extraction.text) {
         const cleanedText = cleanText(extraction.text);
         if (cleanedText && cleanedText.length >= 150) {
