@@ -1,4 +1,4 @@
-import type { DocxParseResult } from "./types";
+import type { DocxParseResult, PdfLine, PdfTextItem } from "./types";
 
 export async function parseDocx(buffer: ArrayBuffer): Promise<DocxParseResult> {
   const mammoth = await import("mammoth/mammoth.browser");
@@ -9,11 +9,12 @@ export async function parseDocx(buffer: ArrayBuffer): Promise<DocxParseResult> {
     mammoth.extractRawText({ arrayBuffer: buffer })
   ]);
 
-  // Process the HTML to extract better structure
-  const structuredText = enhanceDocxStructure(htmlResult.value, textResult.value);
+  // Process the HTML to extract better structure with formatting metadata
+  const { text: structuredText, lines } = enhanceDocxStructure(htmlResult.value, textResult.value);
 
   return {
     text: structuredText,
+    lines, // Include structured lines like PDF parser does
     meta: {
       parser: "docx",
       charCount: structuredText.length
@@ -21,13 +22,14 @@ export async function parseDocx(buffer: ArrayBuffer): Promise<DocxParseResult> {
   };
 }
 
-function enhanceDocxStructure(html: string, rawText: string): string {
+function enhanceDocxStructure(html: string, rawText: string): { text: string; lines: PdfLine[] } {
   // Create a temporary DOM element to parse HTML
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
 
   // Extract text with improved structure preservation
   const structuredLines: string[] = [];
+  const pdfStyleLines: PdfLine[] = [];
 
   // Process the document structure
   const walker = document.createTreeWalker(
@@ -43,17 +45,22 @@ function enhanceDocxStructure(html: string, rawText: string): string {
 
       // Handle different elements that indicate structure
       if (element.tagName === 'P') {
-        const text = extractTextFromElement(element);
+        const { text, isBold } = extractTextWithFormatting(element);
         if (text.trim()) {
           structuredLines.push(text.trim());
+          pdfStyleLines.push([createPdfTextItem(text.trim(), isBold)]);
         }
       } else if (['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(element.tagName)) {
-        const text = extractTextFromElement(element);
+        const { text } = extractTextWithFormatting(element);
         if (text.trim()) {
           // Ensure headers are on their own lines and properly formatted
           structuredLines.push('');
           structuredLines.push(text.trim().toUpperCase());
           structuredLines.push('');
+
+          pdfStyleLines.push([]);
+          pdfStyleLines.push([createPdfTextItem(text.trim().toUpperCase(), true)]); // Headers are always bold
+          pdfStyleLines.push([]);
         }
       } else if (element.tagName === 'TABLE') {
         // Handle tables common in ATS resumes
@@ -62,11 +69,17 @@ function enhanceDocxStructure(html: string, rawText: string): string {
           structuredLines.push('');
           structuredLines.push(tableText);
           structuredLines.push('');
+
+          pdfStyleLines.push([]);
+          pdfStyleLines.push([createPdfTextItem(tableText, false)]);
+          pdfStyleLines.push([]);
         }
       } else if (element.tagName === 'LI') {
-        const text = extractTextFromElement(element);
+        const { text } = extractTextWithFormatting(element);
         if (text.trim()) {
-          structuredLines.push('• ' + text.trim());
+          const bulletText = '• ' + text.trim();
+          structuredLines.push(bulletText);
+          pdfStyleLines.push([createPdfTextItem(bulletText, false)]);
         }
       }
     }
@@ -78,14 +91,36 @@ function enhanceDocxStructure(html: string, rawText: string): string {
   // If HTML processing didn't work well, fall back to enhanced raw text
   if (result.length < rawText.length * 0.8) {
     result = enhanceRawText(rawText);
+    // Recreate lines from the fallback text
+    return {
+      text: cleanupDocxText(result),
+      lines: result.split('\n').map(line => [createPdfTextItem(line, false)])
+    };
   }
 
   // Clean up the result
-  return cleanupDocxText(result);
+  return {
+    text: cleanupDocxText(result),
+    lines: pdfStyleLines
+  };
 }
 
-function extractTextFromElement(element: Element): string {
+function createPdfTextItem(text: string, isBold: boolean): PdfTextItem {
+  return {
+    text,
+    fontName: isBold ? 'Bold' : 'Regular',
+    height: 12,
+    width: text.length * 6,
+    x: 0,
+    y: 0,
+    hasEOL: true
+  };
+}
+
+function extractTextWithFormatting(element: Element): { text: string; isBold: boolean } {
   let text = '';
+  let hasBold = false;
+
   for (const child of element.childNodes) {
     if (child.nodeType === Node.TEXT_NODE) {
       text += child.textContent || '';
@@ -94,7 +129,8 @@ function extractTextFromElement(element: Element): string {
 
       // Handle specific formatting elements
       if (childElement.tagName === 'STRONG' || childElement.tagName === 'B') {
-        text += (childElement.textContent || '').toUpperCase();
+        text += childElement.textContent || '';
+        hasBold = true; // Mark that this element has bold text
       } else if (childElement.tagName === 'BR') {
         text += '\n';
       } else {
@@ -102,7 +138,13 @@ function extractTextFromElement(element: Element): string {
       }
     }
   }
-  return text;
+
+  return { text, isBold: hasBold };
+}
+
+// Legacy function for table processing (no formatting tracking needed)
+function extractTextFromElement(element: Element): string {
+  return extractTextWithFormatting(element).text;
 }
 
 function processTable(table: Element): string {

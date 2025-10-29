@@ -32,6 +32,7 @@ export interface OcrParseResult {
 
 export interface DocxParseResult {
   text: string;
+  lines?: PdfLines; // Now includes structured lines with formatting like PDFs
   meta: {
     parser: "docx";
     charCount: number;

@@ -301,22 +301,27 @@ function openCollectionDialog(collections: JDCollection[]): Promise<CollectionDi
     overlay.style.left = "0";
     overlay.style.width = "100%";
     overlay.style.height = "100%";
-    overlay.style.background = "rgba(15, 23, 42, 0.45)";
-    overlay.style.backdropFilter = "blur(2px)";
+    // Pastel-tinted overlay
+    overlay.style.background = "linear-gradient(135deg, rgba(181, 231, 221, 0.15) 0%, rgba(181, 212, 249, 0.15) 100%), rgba(45, 55, 72, 0.5)";
+    overlay.style.backdropFilter = "blur(8px)";
     overlay.style.zIndex = "2147483646";
     overlay.style.display = "flex";
     overlay.style.alignItems = "center";
     overlay.style.justifyContent = "center";
     overlay.style.padding = "24px";
+    overlay.style.animation = "fadeIn 0.2s ease-out";
 
     const dialog = document.createElement("div");
-    dialog.style.maxWidth = "360px";
+    dialog.style.maxWidth = "420px";
     dialog.style.width = "100%";
-    dialog.style.background = "white";
-    dialog.style.borderRadius = "12px";
-    dialog.style.boxShadow = "0 20px 40px rgba(15, 23, 42, 0.25)";
-    dialog.style.padding = "20px";
-    dialog.style.fontFamily = "system-ui, sans-serif";
+    dialog.style.background = "linear-gradient(135deg, #FFFFFF 0%, #FAFAF9 100%)";
+    dialog.style.borderRadius = "20px";
+    dialog.style.boxShadow = "0 25px 50px rgba(181, 231, 221, 0.25), 0 10px 20px rgba(0, 0, 0, 0.1)";
+    dialog.style.padding = "28px";
+    dialog.style.fontFamily = "system-ui, -apple-system, sans-serif";
+    dialog.style.animation = "scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)";
+    // Add subtle gradient border
+    dialog.style.border = "1px solid rgba(181, 231, 221, 0.3)";
 
     const title = document.createElement("h2");
     title.textContent = "Save to collection";
@@ -355,13 +360,16 @@ function openCollectionDialog(collections: JDCollection[]): Promise<CollectionDi
         option.style.cursor = "pointer";
 
         option.addEventListener("mouseenter", () => {
-          option.style.borderColor = "#cbd5f5";
-          option.style.background = "#eef2ff";
+          option.style.borderColor = "rgba(181, 231, 221, 0.6)";
+          option.style.background = "linear-gradient(135deg, rgba(181, 231, 221, 0.15) 0%, rgba(181, 212, 249, 0.15) 100%)";
+          option.style.transform = "translateY(-1px)";
         });
         option.addEventListener("mouseleave", () => {
           option.style.borderColor = "#e2e8f0";
           option.style.background = "transparent";
+          option.style.transform = "translateY(0)";
         });
+        option.style.transition = "all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1)";
 
         const input = document.createElement("input");
         input.type = "radio";
@@ -444,14 +452,25 @@ function openCollectionDialog(collections: JDCollection[]): Promise<CollectionDi
     const confirmButton = document.createElement("button");
     confirmButton.type = "submit";
     confirmButton.textContent = "Save";
-    confirmButton.style.background = "#2563eb";
+    // Pastel gradient button
+    confirmButton.style.background = "linear-gradient(135deg, #B5E7DD 0%, #B5D4F9 100%)";
     confirmButton.style.border = "none";
-    confirmButton.style.color = "white";
+    confirmButton.style.color = "#2D3748"; // Dark text for contrast
     confirmButton.style.fontSize = "14px";
-    confirmButton.style.fontWeight = "600";
-    confirmButton.style.padding = "8px 16px";
+    confirmButton.style.fontWeight = "700";
+    confirmButton.style.padding = "10px 20px";
     confirmButton.style.borderRadius = "9999px";
     confirmButton.style.cursor = "pointer";
+    confirmButton.style.boxShadow = "0 4px 12px rgba(181, 231, 221, 0.4)";
+    confirmButton.style.transition = "all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1)";
+    confirmButton.addEventListener("mouseenter", () => {
+      confirmButton.style.transform = "translateY(-2px)";
+      confirmButton.style.boxShadow = "0 6px 16px rgba(181, 231, 221, 0.5)";
+    });
+    confirmButton.addEventListener("mouseleave", () => {
+      confirmButton.style.transform = "translateY(0)";
+      confirmButton.style.boxShadow = "0 4px 12px rgba(181, 231, 221, 0.4)";
+    });
 
     buttons.appendChild(cancelButton);
     buttons.appendChild(confirmButton);
@@ -524,14 +543,28 @@ function showToast(message: string, error = false) {
   toast.style.bottom = "24px";
   toast.style.left = "50%";
   toast.style.transform = "translateX(-50%)";
-  toast.style.background = error ? "#dc2626" : "#0f766e";
-  toast.style.color = "white";
-  toast.style.padding = "10px 16px";
+  // Pastel gradient theme
+  toast.style.background = error
+    ? "linear-gradient(135deg, #FFB5B5 0%, #FF8B8B 100%)" // Peach gradient for errors
+    : "linear-gradient(135deg, #B5E7DD 0%, #B5D4F9 100%)"; // Mint-to-sky gradient for success
+  toast.style.color = "#2D3748"; // Dark text for contrast
+  toast.style.padding = "12px 20px";
   toast.style.borderRadius = "9999px";
-  toast.style.boxShadow = "0 10px 20px rgba(15, 118, 110, 0.35)";
+  toast.style.boxShadow = "0 10px 25px rgba(181, 231, 221, 0.4), 0 4px 10px rgba(0, 0, 0, 0.1)";
   toast.style.zIndex = "2147483646";
+  toast.style.fontSize = "14px";
+  toast.style.fontWeight = "600";
+  toast.style.fontFamily = "system-ui, -apple-system, sans-serif";
+  // Smooth entrance animation
+  toast.style.animation = "slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)";
+  toast.style.setProperty("--slideUpKeyframes", "@keyframes slideUp { from { transform: translateX(-50%) translateY(20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }");
   document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 2500);
+  setTimeout(() => {
+    toast.style.transition = "opacity 0.2s ease-out, transform 0.2s ease-out";
+    toast.style.opacity = "0";
+    toast.style.transform = "translateX(-50%) translateY(10px)";
+    setTimeout(() => toast.remove(), 200);
+  }, 2500);
 }
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {

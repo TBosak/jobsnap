@@ -124,17 +124,20 @@ function showHistoryLinkToast({ historyId, host, match }: { historyId: string; h
   toast.style.position = "fixed";
   toast.style.bottom = "24px";
   toast.style.right = "24px";
-  toast.style.maxWidth = "320px";
-  toast.style.background = "#0f172a";
-  toast.style.color = "white";
-  toast.style.padding = "16px";
-  toast.style.borderRadius = "16px";
-  toast.style.boxShadow = "0 18px 36px rgba(15, 23, 42, 0.35)";
+  toast.style.maxWidth = "360px";
+  // Pastel gradient theme
+  toast.style.background = "linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%)";
+  toast.style.color = "#2D3748";
+  toast.style.padding = "20px";
+  toast.style.borderRadius = "20px";
+  toast.style.boxShadow = "0 20px 40px rgba(181, 231, 221, 0.3), 0 10px 20px rgba(0, 0, 0, 0.1)";
+  toast.style.border = "1px solid rgba(181, 231, 221, 0.4)";
   toast.style.zIndex = "2147483647";
   toast.style.fontFamily = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
   toast.style.display = "flex";
   toast.style.flexDirection = "column";
-  toast.style.gap = "12px";
+  toast.style.gap = "14px";
+  toast.style.animation = "slideInRight 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)";
 
   const heading = document.createElement("div");
   heading.style.display = "flex";
@@ -151,18 +154,26 @@ function showHistoryLinkToast({ historyId, host, match }: { historyId: string; h
   dismiss.textContent = "×";
   dismiss.style.background = "transparent";
   dismiss.style.border = "none";
-  dismiss.style.color = "white";
-  dismiss.style.fontSize = "18px";
+  dismiss.style.color = "#718096";
+  dismiss.style.fontSize = "22px";
   dismiss.style.cursor = "pointer";
+  dismiss.style.lineHeight = "1";
+  dismiss.style.transition = "color 0.2s";
+  dismiss.addEventListener("mouseenter", () => {
+    dismiss.style.color = "#2D3748";
+  });
+  dismiss.addEventListener("mouseleave", () => {
+    dismiss.style.color = "#718096";
+  });
 
   heading.appendChild(title);
   heading.appendChild(dismiss);
 
   const message = document.createElement("p");
   message.style.margin = "0";
-  message.style.fontSize = "13px";
-  message.style.lineHeight = "1.5";
-  message.style.color = "rgba(255,255,255,0.82)";
+  message.style.fontSize = "14px";
+  message.style.lineHeight = "1.6";
+  message.style.color = "#718096";
   if (match) {
     const companyPart = match.company ? ` · ${match.company}` : "";
     message.textContent = `Matched to ${match.title ?? "Saved description"}${companyPart} (${match.collectionName}).`;
@@ -180,25 +191,50 @@ function showHistoryLinkToast({ historyId, host, match }: { historyId: string; h
     button.type = "button";
     button.textContent = label;
     button.style.borderRadius = "9999px";
-    button.style.padding = "6px 14px";
+    button.style.padding = "8px 16px";
     button.style.fontSize = "13px";
     button.style.fontWeight = "600";
     button.style.cursor = "pointer";
+    button.style.transition = "all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1)";
     button.style.border = "1px solid transparent";
+
     switch (tone) {
       case "primary":
-        button.style.background = "white";
-        button.style.color = "#1f2937";
+        // Pastel gradient for primary action
+        button.style.background = "linear-gradient(135deg, #B5E7DD 0%, #B5D4F9 100%)";
+        button.style.color = "#2D3748";
+        button.style.boxShadow = "0 2px 8px rgba(181, 231, 221, 0.3)";
+        button.addEventListener("mouseenter", () => {
+          button.style.transform = "translateY(-1px)";
+          button.style.boxShadow = "0 4px 12px rgba(181, 231, 221, 0.4)";
+        });
+        button.addEventListener("mouseleave", () => {
+          button.style.transform = "translateY(0)";
+          button.style.boxShadow = "0 2px 8px rgba(181, 231, 221, 0.3)";
+        });
         break;
       case "secondary":
-        button.style.background = "rgba(148, 163, 184, 0.15)";
-        button.style.borderColor = "rgba(148, 163, 184, 0.4)";
-        button.style.color = "white";
+        // Light pastel background
+        button.style.background = "rgba(181, 231, 221, 0.15)";
+        button.style.borderColor = "rgba(181, 231, 221, 0.4)";
+        button.style.color = "#2D3748";
+        button.addEventListener("mouseenter", () => {
+          button.style.background = "rgba(181, 231, 221, 0.25)";
+        });
+        button.addEventListener("mouseleave", () => {
+          button.style.background = "rgba(181, 231, 221, 0.15)";
+        });
         break;
       case "ghost":
       default:
         button.style.background = "transparent";
-        button.style.color = "rgba(255,255,255,0.82)";
+        button.style.color = "#718096";
+        button.addEventListener("mouseenter", () => {
+          button.style.color = "#2D3748";
+        });
+        button.addEventListener("mouseleave", () => {
+          button.style.color = "#718096";
+        });
         break;
     }
     return button;
@@ -323,16 +359,25 @@ function notify(message: string, error = false) {
   toast.style.bottom = "24px";
   toast.style.left = "50%";
   toast.style.transform = "translateX(-50%)";
-  toast.style.background = error ? "#dc2626" : "#0f766e";
-  toast.style.color = "white";
-  toast.style.padding = "10px 16px";
+  // Pastel gradient theme
+  toast.style.background = error
+    ? "linear-gradient(135deg, #FFB5B5 0%, #FF8B8B 100%)"
+    : "linear-gradient(135deg, #B5E7DD 0%, #B5D4F9 100%)";
+  toast.style.color = "#2D3748";
+  toast.style.padding = "12px 20px";
   toast.style.borderRadius = "9999px";
-  toast.style.boxShadow = "0 10px 24px rgba(15, 118, 110, 0.35)";
+  toast.style.boxShadow = "0 10px 25px rgba(181, 231, 221, 0.4), 0 4px 10px rgba(0, 0, 0, 0.1)";
   toast.style.zIndex = "2147483647";
-  toast.style.fontSize = "13px";
+  toast.style.fontSize = "14px";
   toast.style.fontWeight = "600";
+  toast.style.fontFamily = "system-ui, -apple-system, sans-serif";
   document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 2400);
+  setTimeout(() => {
+    toast.style.transition = "opacity 0.2s ease-out, transform 0.2s ease-out";
+    toast.style.opacity = "0";
+    toast.style.transform = "translateX(-50%) translateY(10px)";
+    setTimeout(() => toast.remove(), 200);
+  }, 2400);
 }
 
 async function openHistoryLinkDialog(host: string): Promise<HistoryMatchInfo | null> {
@@ -349,25 +394,29 @@ async function openHistoryLinkDialog(host: string): Promise<HistoryMatchInfo | n
     overlay.style.left = "0";
     overlay.style.width = "100%";
     overlay.style.height = "100%";
-    overlay.style.background = "rgba(15, 23, 42, 0.55)";
-    overlay.style.backdropFilter = "blur(2px)";
+    // Pastel-tinted overlay
+    overlay.style.background = "linear-gradient(135deg, rgba(181, 231, 221, 0.15) 0%, rgba(181, 212, 249, 0.15) 100%), rgba(45, 55, 72, 0.5)";
+    overlay.style.backdropFilter = "blur(8px)";
     overlay.style.display = "flex";
     overlay.style.alignItems = "center";
     overlay.style.justifyContent = "center";
     overlay.style.padding = "24px";
     overlay.style.zIndex = "2147483646";
+    overlay.style.animation = "fadeIn 0.2s ease-out";
 
     const dialog = document.createElement("div");
     dialog.style.width = "100%";
-    dialog.style.maxWidth = "520px";
-    dialog.style.background = "white";
-    dialog.style.borderRadius = "16px";
-    dialog.style.boxShadow = "0 24px 48px rgba(15, 23, 42, 0.35)";
-    dialog.style.padding = "24px";
+    dialog.style.maxWidth = "560px";
+    dialog.style.background = "linear-gradient(135deg, #FFFFFF 0%, #FAFAF9 100%)";
+    dialog.style.borderRadius = "20px";
+    dialog.style.boxShadow = "0 25px 50px rgba(181, 231, 221, 0.25), 0 10px 20px rgba(0, 0, 0, 0.1)";
+    dialog.style.border = "1px solid rgba(181, 231, 221, 0.3)";
+    dialog.style.padding = "28px";
     dialog.style.display = "flex";
     dialog.style.flexDirection = "column";
     dialog.style.gap = "20px";
     dialog.style.fontFamily = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    dialog.style.animation = "scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)";
 
     const heading = document.createElement("div");
     heading.style.display = "flex";
@@ -539,13 +588,16 @@ async function openHistoryLinkDialog(host: string): Promise<HistoryMatchInfo | n
         option.style.border = "1px solid #e2e8f0";
         option.style.background = "white";
         option.style.cursor = "pointer";
+        option.style.transition = "all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1)";
         option.addEventListener("mouseenter", () => {
-          option.style.borderColor = "#cbd5f5";
-          option.style.background = "#eef2ff";
+          option.style.borderColor = "rgba(181, 231, 221, 0.6)";
+          option.style.background = "linear-gradient(135deg, rgba(181, 231, 221, 0.15) 0%, rgba(181, 212, 249, 0.15) 100%)";
+          option.style.transform = "translateY(-1px)";
         });
         option.addEventListener("mouseleave", () => {
           option.style.borderColor = "#e2e8f0";
           option.style.background = "white";
+          option.style.transform = "translateY(0)";
         });
 
         const titleLine = document.createElement("span");

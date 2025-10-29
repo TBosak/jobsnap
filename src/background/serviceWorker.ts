@@ -1388,7 +1388,10 @@ function parseLinkedInVoyagerResponse(voyagerData: any, skillsData?: any): any {
       };
     }
 
-    const linkedInUrl = profileEntity.publicIdentifier ?
+    // Only create LinkedIn URL if we have a valid publicIdentifier (not "me" or other generic values)
+    const isValidPublicIdentifier = profileEntity.publicIdentifier &&
+                                    profileEntity.publicIdentifier !== 'me'; // Exclude internal IDs
+    const linkedInUrl = isValidPublicIdentifier ?
       `https://linkedin.com/in/${profileEntity.publicIdentifier}` : undefined;
 
     profile.basics = {
@@ -1402,7 +1405,7 @@ function parseLinkedInVoyagerResponse(voyagerData: any, skillsData?: any): any {
       profiles: []
     };
 
-    // Add LinkedIn profile
+    // Add LinkedIn profile (only if we have a valid, personalized URL)
     if (linkedInUrl) {
       const linkedInProfile = {
         network: 'LinkedIn',
@@ -1412,7 +1415,7 @@ function parseLinkedInVoyagerResponse(voyagerData: any, skillsData?: any): any {
       profile.basics.profiles.push(linkedInProfile);
       console.log('Added LinkedIn profile:', linkedInProfile);
     } else {
-      console.log('No LinkedIn URL - publicIdentifier:', profileEntity.publicIdentifier);
+      console.log('No LinkedIn URL - publicIdentifier:', profileEntity.publicIdentifier, '(excluded generic or invalid ID)');
     }
 
     // Extract websites
@@ -1832,16 +1835,24 @@ function scrapeLinkedInProfileFromDOM() {
     profile.basics.location = parseLocation(locationText);
   }
 
-  // Set profile URL
-  profile.basics.url = window.location.href;
-
-  // Add LinkedIn profile
+  // Set profile URL (only if not the generic /in/me page)
   const usernameMatch = window.location.pathname.match(/\/in\/([^/?]+)/);
-  profile.basics.profiles = [{
-    network: "LinkedIn",
-    username: usernameMatch ? usernameMatch[1] : "",
-    url: window.location.href
-  }];
+  const username = usernameMatch ? usernameMatch[1] : "";
+
+  // Only set LinkedIn URL if it's a valid personalized profile (not "me" or internal IDs)
+  const isValidUsername = username && username !== 'me';
+
+  if (isValidUsername) {
+    profile.basics.url = window.location.href;
+    profile.basics.profiles = [{
+      network: "LinkedIn",
+      username: username,
+      url: window.location.href
+    }];
+  } else {
+    // Don't save generic LinkedIn URLs
+    profile.basics.profiles = [];
+  }
 
   // Extract about/summary - try multiple approaches
   const aboutSection = document.querySelector('#about');

@@ -177,7 +177,16 @@ function gatherAllContactLines(profileSection: SectionBlock | undefined, rawText
   const contactLines: string[] = [];
   const seen = new Set<string>();
 
-  // Add profile section lines first
+  // PRIORITY 1: Add first 30 lines in document order (most contact info is at top)
+  const topLines = lines.slice(0, 30);
+  for (const line of topLines) {
+    if (!seen.has(line)) {
+      contactLines.push(line);
+      seen.add(line);
+    }
+  }
+
+  // PRIORITY 2: Add profile section lines if not already included
   if (profileSection) {
     for (const line of profileSection.lines) {
       const trimmed = line.trim();
@@ -188,8 +197,8 @@ function gatherAllContactLines(profileSection: SectionBlock | undefined, rawText
     }
   }
 
-  // Search for contact-like patterns throughout the document
-  for (const line of lines) {
+  // PRIORITY 3: Search for contact-like patterns in the rest of the document
+  for (const line of lines.slice(30)) {
     if (seen.has(line)) continue;
 
     // Look for email, phone, URL, or name-like patterns
@@ -198,15 +207,6 @@ function gatherAllContactLines(profileSection: SectionBlock | undefined, rawText
         /https?:\/\//.test(line) ||
         /^[A-Z][a-z]+ [A-Z]\. [A-Z][a-z]+$/.test(line) || // "Timothy M. Barani" pattern
         Object.values(ATS_CONTACT_PATTERNS).some(pattern => pattern.test(line))) {
-      contactLines.push(line);
-      seen.add(line);
-    }
-  }
-
-  // Take first 30 lines regardless to catch early content
-  const topLines = lines.slice(0, 30);
-  for (const line of topLines) {
-    if (!seen.has(line)) {
       contactLines.push(line);
       seen.add(line);
     }
@@ -311,8 +311,13 @@ const PHONE_FEATURE_SETS: FeatureSet[] = [
     score: 6,
     capture: true
   },
+  // Strongly reward common phone separators (well-formatted numbers)
+  { test: (line) => /\(\d{3}\)|\d{3}-\d{3}-\d{4}|\d{3}\.\d{3}\.\d{4}|\+\d[\s.-]/.test(line), score: 4 },
+  // Penalize very long digit sequences (likely IDs, certification numbers, etc.)
+  { test: (line) => /\d{12,}/.test(line), score: -10 }, // 12+ consecutive digits (strong penalty)
+  { test: (line) => /\d{11}/.test(line) && !/[-.()\s]/.test(line), score: -6 }, // 11 consecutive digits with no separators in line
   { test: (line) => line.includes("@"), score: -2 },
-  { test: (line) => /certification|license|training|course|program/i.test(line), score: -3 } // Penalize certification/training lines
+  { test: (line) => /certification|license|training|course|program|certificate|credential|id\b/i.test(line), score: -5 } // Penalize certification/training lines
 ];
 
 const LOCATION_FEATURE_SETS: FeatureSet[] = [
