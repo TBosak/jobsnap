@@ -13,6 +13,7 @@ import { taleoJobAdapter } from "./taleo";
 import { adpJobAdapter } from "./adp";
 import { ultiproJobAdapter } from "./ultipro";
 import { breezyJobAdapter } from "./breezy";
+import { workableJobAdapter } from "./workable";
 import { genericJobAdapter } from "./generic";
 
 const ADAPTERS: JobAdapter[] = [
@@ -29,6 +30,7 @@ const ADAPTERS: JobAdapter[] = [
   adpJobAdapter,
   ultiproJobAdapter,
   breezyJobAdapter,
+  workableJobAdapter,
   genericJobAdapter
 ];
 

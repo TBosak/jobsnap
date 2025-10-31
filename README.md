@@ -12,7 +12,7 @@ JobSnap is a privacy-focused Chrome extension that streamlines job applications 
 
 ### Job Application Automation
 - **One-click autofill**: Automatically fills application forms on supported platforms
-- **8+ job boards supported**: LinkedIn, Greenhouse, Lever, Workday, Oracle, Y Combinator, Adzuna, and more
+- **9+ job boards supported**: LinkedIn, Greenhouse, Lever, Workday, Workable, Oracle, Y Combinator, Adzuna, and more
 - **Smart field mapping**: Intelligently matches your profile data to form fields
 - **Generic fallback**: Works on unsupported sites with best-effort field detection
 
@@ -61,6 +61,7 @@ JobSnap is a privacy-focused Chrome extension that streamlines job applications 
 - **Greenhouse** - Greenhouse-hosted career pages
 - **Lever** - Lever job boards (US & EU)
 - **Workday** - Workday career portals
+- **Workable** - Workable-hosted job boards (jobs.workable.com)
 - **Oracle** - Oracle Cloud recruiting
 - **Y Combinator** - YC job listings
 - **Work at a Startup** - Startup job board

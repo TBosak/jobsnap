@@ -1,6 +1,7 @@
 import type { Msg } from "../ui-shared/messaging";
-import { fillActiveProfile } from "./runtime";
+import { fillActiveProfile, handleHistoryMatchResponse, type HistoryMatchServerReply } from "./runtime";
 import { getJobContext, initJobDetection, saveCurrentJobToCollections, type JobContext } from "./jobs-detect";
+import { buildJobSignature, hashJobDescription } from "../ui-shared/jd-normalize";
 
 const FAB_CONTAINER_ID = "jobsnap-fab";
 
@@ -78,17 +79,31 @@ const actions: FabAction[] = [
       if (!jobContext) return;
       closeMenu();
       try {
-        await sendRuntimeMessage({
+        const signature = buildJobSignature(jobContext.title ?? document.title, jobContext.company);
+        const descHash = jobContext.text ? hashJobDescription(jobContext.text.slice(0, 1200)) : undefined;
+
+        const response = await sendRuntimeMessage<HistoryMatchServerReply>({
           type: "HISTORY_LOG_AUTOFILL",
           payload: {
             host: jobContext.host,
             url: jobContext.url,
             title: jobContext.title ?? document.title,
             company: jobContext.company,
-            status: "applied"
+            status: "applied",
+            signature,
+            descHash
           }
         });
-        showToast("Marked as applied.");
+
+        if (response && typeof response === "object" && typeof response.id === "string") {
+          handleHistoryMatchResponse({
+            historyId: response.id,
+            host: jobContext.host,
+            match: response.match ?? null
+          });
+        } else {
+          showToast("Marked as applied.");
+        }
       } catch (error) {
         console.error("JobSnap history log failed", error);
         showToast("Unable to mark applied", true);
@@ -748,16 +763,25 @@ function showToast(message: string, error = false) {
   toast.style.bottom = "24px";
   toast.style.left = "50%";
   toast.style.transform = "translateX(-50%)";
-  toast.style.background = error ? "#dc2626" : "#0f766e";
-  toast.style.color = "white";
-  toast.style.padding = "10px 16px";
+  // Pastel gradient theme
+  toast.style.background = error
+    ? "linear-gradient(135deg, #FFB5B5 0%, #FF8B8B 100%)"
+    : "linear-gradient(135deg, #B5E7DD 0%, #B5D4F9 100%)";
+  toast.style.color = "#2D3748";
+  toast.style.padding = "12px 20px";
   toast.style.borderRadius = "9999px";
-  toast.style.boxShadow = "0 10px 20px rgba(15, 118, 110, 0.35)";
+  toast.style.boxShadow = "0 10px 25px rgba(181, 231, 221, 0.4), 0 4px 10px rgba(0, 0, 0, 0.1)";
   toast.style.zIndex = "2147483647";
-  toast.style.fontSize = "13px";
+  toast.style.fontSize = "14px";
   toast.style.fontWeight = "600";
+  toast.style.fontFamily = "system-ui, -apple-system, sans-serif";
   document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 2200);
+  setTimeout(() => {
+    toast.style.transition = "opacity 0.2s ease-out, transform 0.2s ease-out";
+    toast.style.opacity = "0";
+    toast.style.transform = "translateX(-50%) translateY(10px)";
+    setTimeout(() => toast.remove(), 200);
+  }, 2200);
 }
 
 function showApplicationPrompt() {
@@ -767,80 +791,106 @@ function showApplicationPrompt() {
   prompt.style.position = "fixed";
   prompt.style.bottom = "24px";
   prompt.style.right = "24px";
-  prompt.style.background = "white";
-  prompt.style.color = "#1e293b";
-  prompt.style.padding = "16px";
-  prompt.style.borderRadius = "12px";
-  prompt.style.boxShadow = "0 10px 30px rgba(0, 0, 0, 0.2)";
+  // Pastel gradient theme
+  prompt.style.background = "linear-gradient(135deg, #FFFFFF 0%, #FAFAF9 100%)";
+  prompt.style.border = "1px solid rgba(181, 231, 221, 0.4)";
+  prompt.style.color = "#2D3748";
+  prompt.style.padding = "20px";
+  prompt.style.borderRadius = "20px";
+  prompt.style.boxShadow = "0 20px 40px rgba(181, 231, 221, 0.3), 0 10px 20px rgba(0, 0, 0, 0.1)";
   prompt.style.zIndex = "2147483647";
   prompt.style.fontSize = "14px";
   prompt.style.fontWeight = "500";
-  prompt.style.width = "280px";
+  prompt.style.width = "320px";
   prompt.style.fontFamily = "system-ui, -apple-system, sans-serif";
+  prompt.style.animation = "slideInRight 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)";
 
   const message = document.createElement("div");
   message.textContent = "Did you apply to this job?";
-  message.style.marginBottom = "12px";
+  message.style.marginBottom = "16px";
   message.style.fontWeight = "600";
+  message.style.fontSize = "15px";
+  message.style.color = "#2D3748";
 
   const buttonContainer = document.createElement("div");
   buttonContainer.style.display = "flex";
-  buttonContainer.style.gap = "8px";
+  buttonContainer.style.gap = "10px";
 
   const yesButton = document.createElement("button");
   yesButton.textContent = "Yes";
   yesButton.style.flex = "1";
-  yesButton.style.padding = "8px 16px";
-  yesButton.style.background = "#0f766e";
-  yesButton.style.color = "white";
+  yesButton.style.padding = "10px 18px";
+  // Pastel gradient for primary action
+  yesButton.style.background = "linear-gradient(135deg, #B5E7DD 0%, #B5D4F9 100%)";
+  yesButton.style.color = "#2D3748";
   yesButton.style.border = "none";
-  yesButton.style.borderRadius = "6px";
+  yesButton.style.borderRadius = "9999px";
   yesButton.style.cursor = "pointer";
-  yesButton.style.fontSize = "13px";
-  yesButton.style.fontWeight = "600";
-  yesButton.style.transition = "background 0.2s";
+  yesButton.style.fontSize = "14px";
+  yesButton.style.fontWeight = "700";
+  yesButton.style.boxShadow = "0 4px 12px rgba(181, 231, 221, 0.4)";
+  yesButton.style.transition = "all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1)";
 
   const noButton = document.createElement("button");
   noButton.textContent = "No";
   noButton.style.flex = "1";
-  noButton.style.padding = "8px 16px";
-  noButton.style.background = "#e2e8f0";
-  noButton.style.color = "#475569";
-  noButton.style.border = "none";
-  noButton.style.borderRadius = "6px";
+  noButton.style.padding = "10px 18px";
+  // Light pastel background for secondary action
+  noButton.style.background = "rgba(181, 231, 221, 0.15)";
+  noButton.style.color = "#2D3748";
+  noButton.style.border = "1px solid rgba(181, 231, 221, 0.4)";
+  noButton.style.borderRadius = "9999px";
   noButton.style.cursor = "pointer";
-  noButton.style.fontSize = "13px";
+  noButton.style.fontSize = "14px";
   noButton.style.fontWeight = "600";
-  noButton.style.transition = "background 0.2s";
+  noButton.style.transition = "all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1)";
 
   yesButton.addEventListener("mouseenter", () => {
-    yesButton.style.background = "#0d9488";
+    yesButton.style.transform = "translateY(-2px)";
+    yesButton.style.boxShadow = "0 6px 16px rgba(181, 231, 221, 0.5)";
   });
   yesButton.addEventListener("mouseleave", () => {
-    yesButton.style.background = "#0f766e";
+    yesButton.style.transform = "translateY(0)";
+    yesButton.style.boxShadow = "0 4px 12px rgba(181, 231, 221, 0.4)";
   });
 
   noButton.addEventListener("mouseenter", () => {
-    noButton.style.background = "#cbd5e1";
+    noButton.style.background = "rgba(181, 231, 221, 0.25)";
+    noButton.style.transform = "translateY(-1px)";
   });
   noButton.addEventListener("mouseleave", () => {
-    noButton.style.background = "#e2e8f0";
+    noButton.style.background = "rgba(181, 231, 221, 0.15)";
+    noButton.style.transform = "translateY(0)";
   });
 
   yesButton.addEventListener("click", async () => {
     try {
-      await sendRuntimeMessage({
+      const signature = buildJobSignature(jobContext!.title ?? document.title, jobContext!.company);
+      const descHash = jobContext!.text ? hashJobDescription(jobContext!.text.slice(0, 1200)) : undefined;
+
+      const response = await sendRuntimeMessage<HistoryMatchServerReply>({
         type: "HISTORY_LOG_AUTOFILL",
         payload: {
           host: jobContext!.host,
           url: jobContext!.url,
           title: jobContext!.title ?? document.title,
           company: jobContext!.company,
-          status: "applied"
+          status: "applied",
+          signature,
+          descHash
         }
       });
       prompt.remove();
-      showToast("Marked as applied!");
+
+      if (response && typeof response === "object" && typeof response.id === "string") {
+        handleHistoryMatchResponse({
+          historyId: response.id,
+          host: jobContext!.host,
+          match: response.match ?? null
+        });
+      } else {
+        showToast("Marked as applied!");
+      }
     } catch (error) {
       console.error("JobSnap: Failed to mark as applied", error);
       prompt.remove();

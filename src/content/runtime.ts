@@ -4,7 +4,7 @@ import { applyProfileToDocument } from "./strategy";
 import { getJobContext, saveCurrentJobToCollections } from "./jobs-detect";
 import { buildJobSignature, canonicalizeJobUrl, hashJobDescription } from "../ui-shared/jd-normalize";
 
-type HistoryMatchServerReply = { id: string; match?: HistoryMatchInfo | null };
+export type HistoryMatchServerReply = { id: string; match?: HistoryMatchInfo | null };
 
 type HostGroupItem = {
   id: string;
@@ -21,7 +21,7 @@ type HostGroup = {
   items: HostGroupItem[];
 };
 
-interface HistoryMatchInfo {
+export interface HistoryMatchInfo {
   itemId: string;
   collectionId: string;
   collectionName: string;
@@ -113,7 +113,7 @@ export async function fillActiveProfile(): Promise<void> {
   }, 500);
 }
 
-function handleHistoryMatchResponse(params: { historyId: string; host: string; match: HistoryMatchInfo | null }) {
+export function handleHistoryMatchResponse(params: { historyId: string; host: string; match: HistoryMatchInfo | null }) {
   showHistoryLinkToast(params);
 }
 
