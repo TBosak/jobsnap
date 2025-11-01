@@ -43,7 +43,7 @@ export function PopupApp() {
     <div className="min-w-80 max-w-96 bg-white rounded-xl shadow-xl overflow-hidden relative">
       {/* Header Bar */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <h1 className="text-xl font-bold bg-gradient-to-r from-peach to-mint bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(255,180,180,0.3)]">
+        <h1 className="text-xl font-bold bg-gradient-to-r from-peach to-mint bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(255,180,180,0.3)] [-webkit-text-stroke:1px_rgba(0,0,0,0.3)] [text-stroke:1px_rgba(0,0,0,0.3)]">
           JobSnap
         </h1>
 

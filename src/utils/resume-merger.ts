@@ -8,6 +8,7 @@ import type { JsonResume, WorkExperience, Education, Skill, Certificate } from "
  * - Fill-only imports that preserve existing data
  * - Smart conflict detection
  * - Array deduplication
+ * - Multi-source conflict resolution
  */
 
 export interface FillOptions {
@@ -28,6 +29,34 @@ export interface MergePreview {
   newFields: string[];
   preservedFields: string[];
   mergedData: JsonResume;
+}
+
+/**
+ * Represents a value option from a specific source
+ */
+export interface ValueOption {
+  value: unknown;
+  source: string; // File name or "Current Profile"
+  sourceIndex?: number; // Index in the files array
+}
+
+/**
+ * Represents a conflict between multiple file sources
+ */
+export interface MultiSourceConflict {
+  field: string;
+  section: string;
+  options: ValueOption[]; // All available values from different sources
+}
+
+/**
+ * Result of analyzing multiple resumes for conflicts
+ */
+export interface MultiSourceAnalysis {
+  hasConflicts: boolean;
+  conflicts: MultiSourceConflict[];
+  mergedData: JsonResume; // Merged data using first non-empty value
+  fileNames: string[]; // Names of source files
 }
 
 /**
@@ -352,4 +381,159 @@ function deduplicateProfiles(profiles: any[]): any[] {
     seen.add(key);
     return true;
   });
+}
+
+/**
+ * Analyze multiple resumes and detect conflicts between them
+ * Returns all conflicting values so user can choose
+ */
+export function analyzeMultiSourceResumes(
+  resumes: JsonResume[],
+  fileNames: string[]
+): MultiSourceAnalysis {
+  if (resumes.length === 0) {
+    return {
+      hasConflicts: false,
+      conflicts: [],
+      mergedData: { basics: {} },
+      fileNames: []
+    };
+  }
+
+  if (resumes.length === 1) {
+    return {
+      hasConflicts: false,
+      conflicts: [],
+      mergedData: resumes[0],
+      fileNames: [fileNames[0] || 'Resume']
+    };
+  }
+
+  const conflicts: MultiSourceConflict[] = [];
+
+  // Check each basic field for conflicts
+  const basicFields: Array<keyof JsonResume['basics']> = [
+    'name',
+    'label',
+    'email',
+    'phone',
+    'url',
+    'summary',
+    'image'
+  ];
+
+  for (const field of basicFields) {
+    const options: ValueOption[] = [];
+    const uniqueValues = new Set<string>();
+
+    resumes.forEach((resume, index) => {
+      let value = resume.basics?.[field];
+
+      // Handle case where value might be stringified JSON
+      if (value && typeof value === 'string') {
+        value = value.trim();
+
+        // Try to detect and parse stringified JSON key-value pairs
+        // e.g., '"url": "https://example.com"' or '"url": "https://example.com",' -> 'https://example.com'
+        const jsonMatch = value.match(/^"[^"]+"\s*:\s*"([^"]+)"\s*,?$/);
+        if (jsonMatch) {
+          value = jsonMatch[1];
+        } else {
+          // Try to parse if it looks like JSON
+          const jsonObjectMatch = value.match(/^\{.*\}$/);
+          if (jsonObjectMatch) {
+            try {
+              const parsed = JSON.parse(value);
+              if (parsed && typeof parsed === 'object' && field in parsed) {
+                value = parsed[field];
+              }
+            } catch {
+              // Not valid JSON, keep original value
+            }
+          }
+        }
+
+        if (value && value.trim()) {
+          const normalized = value.trim().toLowerCase();
+          if (!uniqueValues.has(normalized)) {
+            uniqueValues.add(normalized);
+            options.push({
+              value: value.trim(),
+              source: fileNames[index] || `File ${index + 1}`,
+              sourceIndex: index
+            });
+          }
+        }
+      }
+    });
+
+    // Only create conflict if there are 2+ distinct values
+    if (options.length > 1) {
+      conflicts.push({
+        field: String(field),
+        section: 'Basic Information',
+        options
+      });
+    }
+  }
+
+  // Merge the resumes using existing logic
+  const mergedData = mergeResumeData(resumes);
+
+  // Sanitize all basic fields in merged data
+  if (mergedData.basics) {
+    for (const field of basicFields) {
+      const value = mergedData.basics[field];
+      if (value && typeof value === 'string') {
+        let sanitized = value.trim();
+
+        // Extract from JSON key-value pair format
+        const jsonMatch = sanitized.match(/^"[^"]+"\s*:\s*"([^"]+)"\s*,?$/);
+        if (jsonMatch) {
+          (mergedData.basics as any)[field] = jsonMatch[1];
+        }
+      }
+    }
+  }
+
+  return {
+    hasConflicts: conflicts.length > 0,
+    conflicts,
+    mergedData,
+    fileNames
+  };
+}
+
+/**
+ * Apply user selections to resolve conflicts
+ */
+export function applyConflictResolutions(
+  mergedData: JsonResume,
+  conflicts: MultiSourceConflict[],
+  selections: Record<string, unknown>
+): JsonResume {
+  const result: JsonResume = JSON.parse(JSON.stringify(mergedData));
+
+  conflicts.forEach(conflict => {
+    let selectedValue = selections[conflict.field];
+
+    // Sanitize the selected value
+    if (selectedValue && typeof selectedValue === 'string') {
+      let sanitized = selectedValue.trim();
+
+      // Extract from JSON key-value pair format
+      const jsonMatch = sanitized.match(/^"[^"]+"\s*:\s*"([^"]+)"\s*,?$/);
+      if (jsonMatch) {
+        sanitized = jsonMatch[1];
+      }
+
+      selectedValue = sanitized;
+    }
+
+    if (selectedValue !== undefined && result.basics) {
+      (result.basics as any)[conflict.field] = selectedValue;
+    }
+  });
+
+  return result;
 }

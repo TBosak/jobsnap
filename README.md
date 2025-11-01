@@ -247,7 +247,7 @@ jobsnap/
 
 JobSnap includes a flexible resume export system that lets you generate professional resumes from your profile data:
 
-1. **Built-in templates**: Use the default professional resume template included with JobSnap
+1. **Built-in templates**: Use the default basic resume template included with JobSnap
 2. **Custom templates**: Upload your own DOCX templates with personalized designs
 3. **Flexible formatting**: Templates support loops, conditionals, and flexible date formatting
 

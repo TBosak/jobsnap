@@ -3,7 +3,7 @@
   "templates": [
     {
       "name": "default",
-      "displayName": "Default Professional Resume",
+      "displayName": "Default Basic Resume",
       "path": "/resumes/default.docx",
       "description": "Clean, professional resume template with standard sections",
       "builtin": true

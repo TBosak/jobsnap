@@ -39,8 +39,17 @@ import {
   Users
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { mergeResumeData, fillEmptyFields, analyzeMerge, type MergePreview } from "../../utils/resume-merger";
+import {
+  mergeResumeData,
+  fillEmptyFields,
+  analyzeMerge,
+  analyzeMultiSourceResumes,
+  applyConflictResolutions,
+  type MergePreview,
+  type MultiSourceAnalysis
+} from "../../utils/resume-merger";
 import { ImportPreviewModal } from "../../components/ImportPreviewModal";
+import { MultiFileConflictModal } from "../../components/MultiFileConflictModal";
 
 interface Props {
   onProfileSaved?: () => void;
@@ -101,10 +110,40 @@ export function Onboarding({ onProfileSaved, initialProfile, importingProfile, o
   const [showJsonModal, setShowJsonModal] = useState(false);
   const [jsonModalValue, setJsonModalValue] = useState(DEFAULT_JSON_SAMPLE);
   const [mergePreview, setMergePreview] = useState<MergePreview | null>(null);
+  const [multiSourceAnalysis, setMultiSourceAnalysis] = useState<MultiSourceAnalysis | null>(null);
 
   const isReady = status === "ready" && !!resume;
 
   const skillsList = useMemo(() => resume?.skills ?? [], [resume]);
+
+  const populatedSections = useMemo(() => {
+    if (!resume) return 0;
+
+    let count = 0;
+
+    // Check basics
+    if (resume.basics && Object.keys(resume.basics).some(key => {
+      const val = resume.basics?.[key as keyof typeof resume.basics];
+      return val && (typeof val !== 'object' || (Array.isArray(val) && val.length > 0));
+    })) {
+      count++;
+    }
+
+    // Check array sections
+    if (resume.work && resume.work.length > 0) count++;
+    if (resume.education && resume.education.length > 0) count++;
+    if (resume.skills && resume.skills.length > 0) count++;
+    if (resume.projects && resume.projects.length > 0) count++;
+    if (resume.certificates && resume.certificates.length > 0) count++;
+    if (resume.publications && resume.publications.length > 0) count++;
+    if (resume.languages && resume.languages.length > 0) count++;
+    if (resume.interests && resume.interests.length > 0) count++;
+    if (resume.awards && resume.awards.length > 0) count++;
+    if (resume.volunteer && resume.volunteer.length > 0) count++;
+    if (resume.references && resume.references.length > 0) count++;
+
+    return count;
+  }, [resume]);
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
@@ -114,8 +153,8 @@ export function Onboarding({ onProfileSaved, initialProfile, importingProfile, o
     setError(null);
 
     try {
-      // If importing/editing existing profile and multiple files, parse and merge all
-      if ((importingProfile || initialProfile) && files.length > 1) {
+      // Multiple file upload
+      if (files.length > 1) {
         await handleMultiFileImport(Array.from(files));
         return;
       }
@@ -158,19 +197,33 @@ export function Onboarding({ onProfileSaved, initialProfile, importingProfile, o
   async function handleMultiFileImport(files: File[]) {
     try {
       const parsedResumes: JsonResume[] = [];
+      const fileNames = files.map(f => f.name);
 
       // Parse all files
       for (const file of files) {
+        // Handle JSON files specially
+        if (file.type === "application/json" || file.name.toLowerCase().endsWith(".json")) {
+          try {
+            const text = await file.text();
+            const parsed = JSON.parse(text);
+            if (isJsonResume(parsed)) {
+              parsedResumes.push(parsed);
+              continue;
+            }
+          } catch (jsonError) {
+            console.warn("Failed to parse JSON file, falling back to text extraction:", jsonError);
+          }
+        }
+
+        // Parse PDF/DOCX or fallback for invalid JSON
         const result = await parseResume(file);
         parsedResumes.push(result.resume);
       }
 
-      // Merge all parsed resumes
-      const merged = mergeResumeData(parsedResumes);
-
       // If importing/editing an existing profile, use fill-only merge
       const existingProfile = importingProfile || initialProfile;
       if (existingProfile) {
+        const merged = mergeResumeData(parsedResumes);
         const preview = analyzeMerge(existingProfile.resume, merged, { arrays: 'merge' });
 
         if (preview.hasConflicts || preview.newFields.length > 0) {
@@ -178,6 +231,26 @@ export function Onboarding({ onProfileSaved, initialProfile, importingProfile, o
         } else {
           setError("No new data to import from these files.");
           setStatus("error");
+        }
+      } else {
+        // Creating new profile from multiple files
+        // Analyze for conflicts between files
+        const analysis = analyzeMultiSourceResumes(parsedResumes, fileNames);
+
+        if (analysis.hasConflicts) {
+          // Show conflict resolution modal
+          setMultiSourceAnalysis(analysis);
+        } else {
+          // No conflicts - use merged data directly
+          setResume(analysis.mergedData);
+          setRawText("");
+          setRawDraft(JSON.stringify(analysis.mergedData, null, 2));
+          setParser("multi-file");
+          if (analysis.mergedData.basics?.name) {
+            setProfileName(analysis.mergedData.basics.name);
+          }
+          setActiveTab("basics");
+          setStatus("ready");
         }
       }
     } catch (err) {
@@ -365,6 +438,29 @@ export function Onboarding({ onProfileSaved, initialProfile, importingProfile, o
     }
   }
 
+  function handleMultiSourceConflictResolution(selections: Record<string, unknown>) {
+    if (!multiSourceAnalysis) return;
+
+    // Apply user selections to resolve conflicts
+    const resolvedResume = applyConflictResolutions(
+      multiSourceAnalysis.mergedData,
+      multiSourceAnalysis.conflicts,
+      selections
+    );
+
+    // Set the resolved resume and mark as ready
+    setResume(resolvedResume);
+    setRawText("");
+    setRawDraft(JSON.stringify(resolvedResume, null, 2));
+    setParser("multi-file");
+    if (resolvedResume.basics?.name) {
+      setProfileName(resolvedResume.basics.name);
+    }
+    setActiveTab("basics");
+    setStatus("ready");
+    setMultiSourceAnalysis(null);
+  }
+
   const isEditing = Boolean(currentProfileId && initialProfile);
   const isImporting = Boolean(currentProfileId && importingProfile);
 
@@ -401,7 +497,7 @@ export function Onboarding({ onProfileSaved, initialProfile, importingProfile, o
           <input
             type="file"
             accept=".pdf,.doc,.docx,application/json"
-            multiple={isImporting || isEditing}
+            multiple
             className="hidden"
             onChange={(event) => {
               const files = event.target.files;
@@ -423,9 +519,7 @@ export function Onboarding({ onProfileSaved, initialProfile, importingProfile, o
           />
           {status === "parsing"
             ? "Parsing resume…"
-            : isImporting || isEditing
-              ? "Upload resume files (PDF/DOCX/JSON)"
-              : "Upload resume (PDF/DOCX/JSON)"}
+            : "Upload resume files (PDF/DOCX/JSON)"}
         </label>
         {!isImporting && (
           <IconBadgeButton
@@ -441,7 +535,7 @@ export function Onboarding({ onProfileSaved, initialProfile, importingProfile, o
           <div className="flex flex-col gap-3 rounded-lg border border-indigo-100 bg-indigo-50/70 p-3 text-xs text-indigo-600">
             <div className="flex flex-wrap items-center gap-3">
               <span className="uppercase">Parser: {parser}</span>
-              <span className="rounded bg-white px-2 py-1">Fields captured: {Object.keys(resume).length}</span>
+              <span className="rounded bg-white px-2 py-1">Sections with data: {populatedSections}</span>
             </div>
           </div>
           <label className="flex flex-col gap-1 text-sm">
@@ -499,7 +593,21 @@ export function Onboarding({ onProfileSaved, initialProfile, importingProfile, o
         <ImportPreviewModal
           preview={mergePreview}
           onConfirm={handleConfirmImport}
-          onCancel={() => setMergePreview(null)}
+          onCancel={() => {
+            setMergePreview(null);
+            setStatus("idle");
+          }}
+        />
+      )}
+
+      {multiSourceAnalysis && (
+        <MultiFileConflictModal
+          analysis={multiSourceAnalysis}
+          onConfirm={handleMultiSourceConflictResolution}
+          onCancel={() => {
+            setMultiSourceAnalysis(null);
+            setStatus("idle");
+          }}
         />
       )}
     </div>

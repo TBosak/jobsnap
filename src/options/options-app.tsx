@@ -84,7 +84,7 @@ export function OptionsApp() {
               />
               <div>
                 <h1 className="text-3xl font-semibold tracking-tight drop-shadow-[0_2px_8px_rgba(181,231,221,0.4)]">
-                  <span className="bg-gradient-to-r from-[#FFB5B5] via-[#D4C5F9] to-[#B5E7DD] bg-clip-text text-transparent drop-shadow-[0_1px_3px_rgba(0,0,0,0.15)]">
+                  <span className="bg-gradient-to-r from-[#FFB5B5] via-[#D4C5F9] to-[#B5E7DD] bg-clip-text text-transparent drop-shadow-[0_1px_3px_rgba(0,0,0,0.15)] [-webkit-text-stroke:1px_rgba(0,0,0,0.3)] [text-stroke:1px_rgba(0,0,0,0.3)]">
                     JobSnap
                   </span>
                 </h1>
