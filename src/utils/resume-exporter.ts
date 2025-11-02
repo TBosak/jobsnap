@@ -138,14 +138,14 @@ function parseDateComponents(dateStr: string | undefined): DateComponents {
 
 /**
  * Get list of available resume templates
- * Reads from manifest.json and merges with user-uploaded templates from Chrome storage
+ * Reads from resumes.json and merges with user-uploaded templates from Chrome storage
  */
 export async function getAvailableTemplates(): Promise<ResumeTemplate[]> {
   const allTemplates: ResumeTemplate[] = [];
 
   // Load built-in templates from manifest
   try {
-    const response = await fetch('/resumes/manifest.json');
+    const response = await fetch('/resumes/resumes.json');
     if (response.ok) {
       const manifest: TemplateManifest = await response.json();
       allTemplates.push(...manifest.templates);

@@ -259,7 +259,7 @@ We welcome contributions of resume templates! If you've created a great template
 
 1. **Create your template**: Design a DOCX template using docxtemplater syntax
 2. **Test thoroughly**: Export resumes with your template using different profiles
-3. **Add to manifest**: Update `public/resumes/manifest.json`:
+3. **Add to manifest**: Update `public/resumes/resumes.json`:
    ```json
    {
      "name": "modern-tech",
