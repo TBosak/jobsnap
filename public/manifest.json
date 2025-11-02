@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "JobSnap",
-  "description": "Job application helper with resume parsing and autofill.",
+  "description": "Your AI-powered job hunt command center. Manage multiple profiles, autofill applications, and never miss a follow-up.",
   "version": "0.1.0",
   "action": {
     "default_popup": "popup.html",
@@ -19,7 +19,9 @@
     "storage",
     "activeTab",
     "scripting",
-    "contextMenus"
+    "contextMenus",
+    "notifications",
+    "alarms"
   ],
   "host_permissions": [
     "https://*.linkedin.com/*",

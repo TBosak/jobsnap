@@ -2,17 +2,19 @@
 
 JobSnap is a privacy-focused Chrome extension that streamlines job applications by combining intelligent resume parsing, multi-profile management, and automatic form filling across major job platforms. Featuring a bold pastel gradient UI that makes job hunting feel less stressful, all processing happens locally—your resume data never leaves your device.
 
+All profiles are stored using the open [JSON Resume](https://jsonresume.org/) standard, a community-driven specification for resume data that ensures your information is portable and future-proof.
+
 ## What JobSnap Does
 
 ### Resume Intelligence
 - **Smart parsing**: Import PDF or DOCX resumes with automatic OCR fallback for scanned documents
-- **Structured profiles**: Normalizes all resume data into JSON Resume format with 12 editable sections
+- **Structured profiles**: Normalizes all resume data into [JSON Resume](https://jsonresume.org/) format with 13 editable sections
 - **Multiple profiles**: Create and manage different resume variations for different roles
 - **Skill extraction**: Automatically identifies and normalizes skills from your experience
 
 ### Job Application Automation
 - **One-click autofill**: Automatically fills application forms on supported platforms
-- **9+ job boards supported**: LinkedIn, Greenhouse, Lever, Workday, Workable, Oracle, Y Combinator, Adzuna, and more
+- **6 dedicated adapters**: LinkedIn, Greenhouse, Lever, Workday, Oracle, plus generic fallback for other sites
 - **Smart field mapping**: Intelligently matches your profile data to form fields
 - **Generic fallback**: Works on unsupported sites with best-effort field detection
 
@@ -21,6 +23,7 @@ JobSnap is a privacy-focused Chrome extension that streamlines job applications 
 - **Timeline view**: Visualize your application journey over time
 - **Notes & metadata**: Add notes and track which profile you used
 - **Export capabilities**: Export history as CSV or JSON for external analysis
+- **Smart reminders**: Get browser notifications for no-response follow-ups, ghosting detection, daily application goals, and thank-you note reminders
 
 ### AI-Powered Job Analysis
 - **Keyword extraction**: Automatically identifies the 25 most relevant keywords from job descriptions
@@ -31,7 +34,7 @@ JobSnap is a privacy-focused Chrome extension that streamlines job applications 
 ## Features
 
 ### Resume Parsing Pipeline
-- **Multi-format support**: PDF, DOCX, and JSON Resume formats
+- **Multi-format support**: PDF, DOCX, and [JSON Resume](https://jsonresume.org/) formats
 - **OCR fallback**: Tesseract.js automatically processes scanned/image-based PDFs
 - **Semantic extraction**: AI-powered section detection and field extraction
 - **Comprehensive fields**: Basics, work experience, education, skills, projects, certifications, publications, languages, interests, awards, volunteer work, and references
@@ -39,7 +42,7 @@ JobSnap is a privacy-focused Chrome extension that streamlines job applications 
 ### Profile Management
 - **Profile editor**: Full-featured interface with 13 tabs for complete control
 - **LinkedIn import**: Import profile data directly from LinkedIn
-- **Export profiles**: Download as JSON Resume format
+- **Export profiles**: Download as [JSON Resume](https://jsonresume.org/) format
 
 ### Job Collection & Analysis
 - **Auto-detection**: Automatically detects and captures job postings across the web
@@ -56,7 +59,7 @@ JobSnap is a privacy-focused Chrome extension that streamlines job applications 
 
 ## Supported Platforms
 
-### Autofill Adapters
+### Dedicated Adapters (Autofill or Job Description)
 - **LinkedIn** - Job applications and profile import
 - **Greenhouse** - Greenhouse-hosted career pages
 - **Lever** - Lever job boards (US & EU)
@@ -91,7 +94,6 @@ The UI makes job hunting feel less stressful by combining visual energy with cal
 **State**: Chrome Storage + Dexie (IndexedDB)
 **AI/ML**: Hugging Face Transformers.js (on-device embeddings)
 **Parsing**: pdf-parse, pdfjs-dist, mammoth, tesseract.js
-**Testing**: Vitest
 
 ## Getting Started
 
@@ -116,12 +118,6 @@ bun run build
 
 # Run linter
 bun run lint
-
-# Run tests
-bun run test
-
-# Test in watch mode
-bun run test --watch
 ```
 
 ### Load Extension in Chrome
@@ -170,7 +166,6 @@ jobsnap/
 │   ├── options/               # Full options page
 │   │   └── routes/            # Profiles, History, Collections, Onboarding
 │   └── ui-shared/             # Shared types, components, messaging
-├── fixtures/                  # Sample resumes for testing
 ├── scripts/                   # Dev utilities
 ├── vite.config.ts             # Main build config
 ├── vite.content.config.ts     # Content script build (IIFE)
@@ -183,7 +178,7 @@ jobsnap/
 1. Install and load the extension
 2. Click the extension icon → **Manage**
 3. Navigate to **Import Resume**
-4. Upload your PDF or DOCX resume
+4. Upload your PDF/DOCX resume(s) or [JSON Resume](https://jsonresume.org/) file(s) (multiple resume files will be parsed as a single profile and bring up a conflict resolution modal as needed)
 5. Review and edit parsed fields across 13 tabs
 6. Name your profile and save
 
@@ -223,12 +218,6 @@ jobsnap/
 - Tailwind classes grouped: layout → color → state
 - Centralize shared types in `src/ui-shared/`
 
-### Testing
-- Colocate tests as `*.test.ts` near source files
-- Use fixtures from `fixtures/` for parser validation
-- Mock Chrome APIs with light wrappers
-- Focus on edge cases and regression prevention
-
 ### Extension Architecture
 - **Dual build system**: Main extension + isolated content script (IIFE)
 - **Message passing**: Type-safe contracts in `src/ui-shared/messaging.ts`
@@ -236,7 +225,6 @@ jobsnap/
 - **CSP-compliant**: WASM support for Tesseract and Transformers
 
 ### Key Patterns
-- All Chrome API interactions should be wrapped for testability
 - Storage migrations use Dexie version system
 - Content scripts detect platform via URL patterns
 - Profile skills are computed/cached for performance
@@ -267,7 +255,7 @@ Want to create your own resume template?
 
 We welcome contributions of resume templates! If you've created a great template and want to share it with the community:
 
-#### For Developers (Built-in Templates)
+#### Built-in Templates
 
 1. **Create your template**: Design a DOCX template using docxtemplater syntax
 2. **Test thoroughly**: Export resumes with your template using different profiles
@@ -282,49 +270,14 @@ We welcome contributions of resume templates! If you've created a great template
    }
    ```
 4. **Place template file**: Add your `.docx` file to `public/resumes/`
-5. **Submit PR**: Include screenshots of example output and describe the template's style/use case
-6. **Follow guidelines**:
-   - Templates should work with incomplete profiles (gracefully handle missing data)
-   - Use semantic field names from the template guide
-   - Include at least one date formatting example
-   - Test with profiles containing varying amounts of data
-
-#### For Users (Share Your Templates)
-
-If you've created a custom template you'd like to share but don't want to submit a PR:
-
-1. **Upload to GitHub**: Create a Gist or repository with your template file
-2. **Create an issue**: Open an issue titled "Resume Template: [Template Name]"
-3. **Include details**:
-   - Template name and description
-   - Target use case (tech, creative, academic, executive, etc.)
-   - Link to download
-   - Screenshots of sample output
-   - Any special formatting notes
-
-We'll review community templates and may include popular ones in future releases!
-
-#### Template Design Best Practices
-
-- **ATS-friendly**: Use standard fonts, clear section headers, and simple formatting
-- **Flexible sections**: Use conditionals for optional sections like certifications
-- **Date flexibility**: Provide multiple date format options or use the most common format
-- **Test edge cases**: Verify with profiles that have minimal data, lots of data, and "Present" employment
-- **Visual appeal**: Balance readability with professional design
-- **Document field usage**: Comment on which template fields you're using
+5. **Submit PR**
 
 ## Contributing
 
 Contributions are welcome! Please follow these guidelines:
 
-1. **Commits**: Use Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`)
-2. **Code style**: Run `bun run lint` before committing
-3. **Tests**: Add tests for new features and bug fixes
-4. **Manifest changes**: Document any new permissions in PR description
-5. **UI changes**: Include screenshots in PR
-6. **Privacy**: Maintain offline-first model—no remote calls without design review
-
-See `CLAUDE.md` for detailed development guidance.
+1. **Manifest changes**: Document any new permissions in PR description
+2. **Privacy**: Maintain offline-first model—no remote calls without design review
 
 ## Security & Privacy
 
@@ -334,14 +287,6 @@ See `CLAUDE.md` for detailed development guidance.
 - **No accounts**: No sign-up or authentication required
 - **Open permissions**: Only requests access to job board domains for autofill
 
-## License
-
-This project has not declared a license. Please consult the repository owner before distributing or modifying the code.
-
 ## Support
 
 For bugs, feature requests, or questions, please open an issue on the GitHub repository.
-
----
-
-**Built with privacy in mind. Your resume data never leaves your device.**

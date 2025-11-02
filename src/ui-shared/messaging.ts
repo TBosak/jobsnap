@@ -1,4 +1,4 @@
-import type { JsonResume } from "./schema";
+import type { JsonResume, AlertSettings } from "./schema";
 import type { JDCollection, JDItem } from "./types.jd";
 import type { JobFillEvent, JobFillStatus } from "./types.history";
 
@@ -32,7 +32,10 @@ export type Msg =
   | { type: "HISTORY_SET_NOTE"; id: string; note: string }
   | { type: "HISTORY_LINK_JD"; historyId: string; jdItemId: string | null }
   | { type: "HISTORY_REMOVE"; id: string }
-  | { type: "HISTORY_CLEAR" };
+  | { type: "HISTORY_CLEAR" }
+  | { type: "ALERT_GET_SETTINGS" }
+  | { type: "ALERT_UPDATE_SETTINGS"; settings: AlertSettings }
+  | { type: "ALERT_CHECK_NOW" };
 
 export type Reply<T = unknown> =
   | { ok: true; data?: T }

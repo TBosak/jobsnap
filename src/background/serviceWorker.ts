@@ -10,6 +10,11 @@ import {
   setProfileComputedSkills
 } from "../storage/profiles";
 import {
+  readAlertSettings,
+  writeAlertSettings
+} from "../storage/alert-settings";
+import { checkAndNotify } from "./reminder-engine";
+import {
   createCollection,
   listCollections,
   renameCollection,
@@ -698,6 +703,19 @@ async function handleMessage(message: Msg, sender?: chrome.runtime.MessageSender
     case "HISTORY_CLEAR": {
       await clearHistory();
       return { ok: true };
+    }
+    case "ALERT_GET_SETTINGS": {
+      const settings = await readAlertSettings();
+      return { ok: true, data: settings };
+    }
+    case "ALERT_UPDATE_SETTINGS": {
+      await writeAlertSettings(message.settings);
+      return { ok: true };
+    }
+    case "ALERT_CHECK_NOW": {
+      // Manually trigger reminder check for testing
+      const notifications = await checkAndNotify();
+      return { ok: true, data: { checked: true, notificationCount: notifications } };
     }
     default:
       return { ok: false, error: "UNKNOWN_MESSAGE" };
@@ -2290,6 +2308,9 @@ function scrapeLinkedInProfileFromDOM() {
   return profile;
 }
 
+// Set up periodic alarm for checking smart reminders
+const REMINDER_ALARM_NAME = "jobsnap-check-reminders";
+
 chrome.runtime.onInstalled.addListener(() => {
   try {
     // Clear any existing context menu entries to avoid duplicates
@@ -2304,6 +2325,13 @@ chrome.runtime.onInstalled.addListener(() => {
   } catch (error) {
     console.warn("JobSnap context menu error", error);
   }
+
+  // Create alarm to check reminders every 4 hours
+  chrome.alarms.create(REMINDER_ALARM_NAME, {
+    delayInMinutes: 1, // First check after 1 minute
+    periodInMinutes: 240, // Then every 4 hours
+  });
+  console.log("JobSnap: Reminder alarm created");
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
@@ -2315,5 +2343,23 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   chrome.tabs.sendMessage(tab.id, {
     type: "JOBSNAP_CONTEXT_SAVE",
     text: info.selectionText
+  });
+});
+
+// Handle alarm events
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === REMINDER_ALARM_NAME) {
+    console.log("JobSnap: Checking reminders...");
+    checkAndNotify().catch((error) => {
+      console.error("JobSnap: Error checking reminders:", error);
+    });
+  }
+});
+
+// Also check on startup
+chrome.runtime.onStartup.addListener(() => {
+  console.log("JobSnap: Extension started, checking reminders...");
+  checkAndNotify().catch((error) => {
+    console.error("JobSnap: Error checking reminders on startup:", error);
   });
 });

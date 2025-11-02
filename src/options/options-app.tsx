@@ -1,17 +1,18 @@
 import { useState } from "react";
-import { Users, Folder, Clock, FileText } from "lucide-react";
+import { Users, Folder, Clock, FileText, Bell } from "lucide-react";
 import "../ui-shared/mascot-animations.css";
 import { Onboarding } from "./routes/Onboarding";
 import { ProfilesList } from "./routes/ProfilesList";
 import { CollectionsPanel } from "./routes/Collections";
 import { HistoryPanel } from "./routes/History";
 import { ResumeExport } from "./routes/ResumeExport";
+import { Alerts } from "./routes/Alerts";
 import type { ProfileRecord } from "../ui-shared/schema";
 import { sendMessage } from "../ui-shared/runtime";
 
 const LOGO_URL = "/fullsize.png";
 
-type View = "profiles" | "collections" | "history" | "export";
+type View = "profiles" | "collections" | "history" | "export" | "alerts";
 
 export function OptionsApp() {
   const [view, setView] = useState<View>("profiles");
@@ -101,6 +102,7 @@ export function OptionsApp() {
           <NavButton icon={Folder} label="Collections" active={view === "collections"} onClick={() => setView("collections")} />
           <NavButton icon={Clock} label="History" active={view === "history"} onClick={() => setView("history")} />
           <NavButton icon={FileText} label="Resumes" active={view === "export"} onClick={() => setView("export")} />
+          <NavButton icon={Bell} label="Alerts" active={view === "alerts"} onClick={() => setView("alerts")} />
         </nav>
         <main className="rounded-2xl border border-peach/20 bg-white/95 p-5 shadow-lg backdrop-blur">
           {view === "profiles" && (
@@ -127,6 +129,7 @@ export function OptionsApp() {
           {view === "export" && <ResumeExport />}
           {view === "collections" && <CollectionsPanel />}
           {view === "history" && <HistoryPanel />}
+          {view === "alerts" && <Alerts />}
         </main>
       </div>
     </div>

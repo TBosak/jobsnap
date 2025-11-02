@@ -94,12 +94,7 @@ This automatically includes all skills regardless of count.
 To handle both past and current positions in the same template:
 
 ```
-Option 1: Use {endDate} (simplest)
-{startMonthShort} {startYear} - {endDate}
-→ Past: Sep 2019 - Jan 2025
-→ Current: Sep 2019 - Present
-
-Option 2: Conditional with components
+Conditional with components
 {startMonthShort} {startYear} - {endMonthShort} {endYear}{#-endYear}{endDate}{/-endYear}
 → Past: Sep 2019 - Jan 2025
 → Current: Sep 2019 - Present

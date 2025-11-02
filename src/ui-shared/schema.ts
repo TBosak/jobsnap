@@ -132,3 +132,45 @@ export interface ProfileRecord {
   computedSkills?: string[];
   computedAt?: string;
 }
+
+export interface AlertSettings {
+  noResponseReminder: {
+    enabled: boolean;
+    daysThreshold: number;
+  };
+  ghostingDetection: {
+    enabled: boolean;
+    daysThreshold: number;
+  };
+  dailyApplicationGoal: {
+    enabled: boolean;
+    dailyGoal: number;
+    weeklyGoal: number;
+    reminderTime: string; // "HH:MM" format
+  };
+  thankYouNoteReminder: {
+    enabled: boolean;
+    hoursAfter: number;
+  };
+}
+
+export const DEFAULT_ALERT_SETTINGS: AlertSettings = {
+  noResponseReminder: {
+    enabled: true,
+    daysThreshold: 7,
+  },
+  ghostingDetection: {
+    enabled: true,
+    daysThreshold: 30,
+  },
+  dailyApplicationGoal: {
+    enabled: false,
+    dailyGoal: 1,
+    weeklyGoal: 5,
+    reminderTime: "18:00",
+  },
+  thankYouNoteReminder: {
+    enabled: true,
+    hoursAfter: 24,
+  },
+};
