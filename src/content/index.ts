@@ -2,6 +2,8 @@ import type { Msg } from "../ui-shared/messaging";
 import { fillActiveProfile, handleHistoryMatchResponse, type HistoryMatchServerReply } from "./runtime";
 import { getJobContext, initJobDetection, saveCurrentJobToCollections, type JobContext } from "./jobs-detect";
 import { buildJobSignature, hashJobDescription } from "../ui-shared/jd-normalize";
+import { getAdapterForHost } from "./adapters";
+import { genericAdapter } from "./adapters/generic";
 
 const FAB_CONTAINER_ID = "jobsnap-fab";
 
@@ -17,6 +19,14 @@ let jobContext: JobContext | null = null;
 let formAvailable = hasFillableInputs();
 let isLinkedInProfile = checkIsLinkedInProfile();
 let menuOpen = false;
+
+// Check if we're on a page with a dedicated adapter (not generic fallback)
+function isOnSupportedPlatform(): boolean {
+  const adapter = getAdapterForHost(window.location.hostname);
+  // Check if we're using a dedicated adapter by comparing references
+  // Only show application prompts on platforms with dedicated adapters
+  return adapter !== genericAdapter;
+}
 
 console.log('JobSnap: Initial state', {
   formAvailable,
@@ -228,7 +238,7 @@ document.addEventListener(
       target instanceof HTMLAnchorElement &&
       /apply|submit/i.test(target.textContent || "");
 
-    if ((isSubmitButton || isSubmitLink) && formAvailable && jobContext && !applicationPromptShown) {
+    if ((isSubmitButton || isSubmitLink) && formAvailable && jobContext && !applicationPromptShown && isOnSupportedPlatform()) {
       // Mark as shown and wait a moment for form to submit, then show prompt
       applicationPromptShown = true;
       if (applicationPromptTimeout) clearTimeout(applicationPromptTimeout);
