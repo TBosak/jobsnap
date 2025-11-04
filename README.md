@@ -285,7 +285,6 @@ Contributions are welcome! Please follow these guidelines:
 - **Local processing**: All AI/ML runs on-device
 - **No analytics**: No tracking or telemetry
 - **No accounts**: No sign-up or authentication required
-- **Open permissions**: Only requests access to job board domains for autofill
 
 ## Support
 
