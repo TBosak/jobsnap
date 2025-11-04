@@ -68,4 +68,5 @@ If you have any questions about privacy or data handling in JobSnap, you can con
 
 ---
 
-*JobSnap is an open-source project. You can review the source code and verify its local-only design at: [\[GitHub Repository URL\]](https://github.com/TBosak/jobsnap)*
+
+*JobSnap is an open-source project. You can review the source code and verify its local-only design at: [JobSnap](https://github.com/TBosak/jobsnap)*
